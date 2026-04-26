@@ -9,6 +9,6 @@
     "firebase": "^10.7.1"
   },
   "engines": {
-    "node": "18.x"
+    "node": "24.x"
   }
 }
