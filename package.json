@@ -1,12 +1,19 @@
 {
-  "name": "html-host",
-  "version": "1.0.0",
-  "description": "Personal mini HTML hosting tool",
+  "name": "dropify",
+  "version": "2.0.0",
+  "description": "Personal HTML hosting & deploy tool",
   "main": "api/index.js",
+  "scripts": {
+    "start": "node api/index.js",
+    "dev": "nodemon api/index.js"
+  },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "firebase": "^10.7.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
   },
   "engines": {
     "node": "24.x"
