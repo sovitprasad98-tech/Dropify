@@ -1399,7 +1399,12 @@ function downloadQR() {
 async function loadProjects() {
   if (!state.user) return;
   const snap = await db.ref(`projects/${state.user.uid}`).get();
-  state.projects = snap.exists() ? snap.val() : {};
+  if (!snap.exists()) { state.projects = {}; renderProjects(); updateNavCounts(); return; }
+  const raw = snap.val();
+  state.projects = {};
+  for (const [id, proj] of Object.entries(raw)) {
+    state.projects[id] = { ...proj, files: decodeFiles(proj.files) };
+  }
   renderProjects();
   updateNavCounts();
 }
@@ -1518,7 +1523,8 @@ async function submitCreateProject() {
   btn.disabled = true; document.getElementById('createProjectBtnLabel').textContent = 'Creating…';
   try {
     const projectId = db.ref().push().key;
-    const data = { name, slug:name, description:desc, files:projectFiles, mainFile, createdAt:Date.now(), views:0 };
+    const encodedFiles = encodeFiles(projectFiles);
+    const data = { name, slug:name, description:desc, files:encodedFiles, mainFile:encodeKey(mainFile), createdAt:Date.now(), views:0 };
     await db.ref(`projects/${state.user.uid}/${projectId}`).set(data);
     await db.ref(`projectSlugs/${name}`).set({uid:state.user.uid, projectId});
     state.projects[projectId] = data;
@@ -1603,7 +1609,8 @@ async function saveAllFiles() {
   }
   if (!state.editingProjectId) return;
   try {
-    await db.ref(`projects/${state.user.uid}/${state.editingProjectId}/files`).set(state.editingProjectFiles);
+    const encoded = encodeFiles(state.editingProjectFiles);
+    await db.ref(`projects/${state.user.uid}/${state.editingProjectId}/files`).set(encoded);
     state.projects[state.editingProjectId].files = state.editingProjectFiles;
     closeModal('fileEditorModal');
     showToast('All files saved!', 'success');
@@ -1784,6 +1791,45 @@ function updateNavCounts() {
   document.getElementById('nav-deploy-count').textContent = Object.keys(state.deploys).length;
   document.getElementById('nav-project-count').textContent = Object.keys(state.projects).length;
 }
+
+// ── Firebase key encode/decode ─────────────────────────────────────────────
+// Firebase keys cannot contain . # $ / [ ]
+// So we encode file names before storing and decode when reading back
+function encodeKey(name) {
+  return name
+    .replace(/\./g,  '__dot__')
+    .replace(/#/g,   '__hash__')
+    .replace(/\$/g,  '__dollar__')
+    .replace(/\//g,  '__slash__')
+    .replace(/\[/g,  '__lb__')
+    .replace(/\]/g,  '__rb__');
+}
+function decodeKey(key) {
+  return key
+    .replace(/__dot__/g,    '.')
+    .replace(/__hash__/g,   '#')
+    .replace(/__dollar__/g, '$')
+    .replace(/__slash__/g,  '/')
+    .replace(/__lb__/g,     '[')
+    .replace(/__rb__/g,     ']');
+}
+// Encode all keys of a files object before saving to Firebase
+function encodeFiles(filesObj) {
+  const out = {};
+  for (const [name, content] of Object.entries(filesObj)) {
+    out[encodeKey(name)] = content;
+  }
+  return out;
+}
+// Decode all keys of a files object after reading from Firebase
+function decodeFiles(encodedObj) {
+  const out = {};
+  for (const [key, content] of Object.entries(encodedObj || {})) {
+    out[decodeKey(key)] = content;
+  }
+  return out;
+}
+
 function getFileIcon(name) {
   const ext = name.split('.').pop()?.toLowerCase();
   if(['html','htm','php'].includes(ext)) return 'file-code';
