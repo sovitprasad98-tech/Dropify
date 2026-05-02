@@ -181,6 +181,28 @@ const MIME = {
   xml:  "application/xml",
 };
 
+
+// ── Encode/decode file keys (mirrors frontend logic) ─────────────────────────
+function encodeKey(name) {
+  return name
+    .replace(/\./g,  '__dot__')
+    .replace(/#/g,   '__hash__')
+    .replace(/\$/g,  '__dollar__')
+    .replace(/\//g,  '__slash__')
+    .replace(/\[/g,  '__lb__')
+    .replace(/\]/g,  '__rb__');
+}
+
+function decodeKey(key) {
+  return key
+    .replace(/__dot__/g,    '.')
+    .replace(/__hash__/g,   '#')
+    .replace(/__dollar__/g, '$')
+    .replace(/__slash__/g,  '/')
+    .replace(/__lb__/g,     '[')
+    .replace(/__rb__/g,     ']');
+}
+
 async function serveProject(req, res, slug, filePath) {
   try {
     const result = await findProjectBySlug(slug);
@@ -188,7 +210,8 @@ async function serveProject(req, res, slug, filePath) {
 
     const { uid, projectId, data } = result;
     const files = data.files || {};
-    const target = filePath || data.mainFile || "index.html";
+    const rawTarget = filePath || (data.mainFile ? decodeKey(data.mainFile) : "index.html");
+    const target = encodeKey(rawTarget);
 
     if (!(target in files)) {
       return res.status(404).send(`File <code>${target}</code> not found in project.`);
