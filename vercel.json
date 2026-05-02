@@ -3,7 +3,6 @@
     { "source": "/u/:slug/auth", "destination": "/api/index" },
     { "source": "/u/:slug",      "destination": "/api/index" },
     { "source": "/p/:slug/(.*)", "destination": "/api/index" },
-    { "source": "/p/:slug",      "destination": "/api/index" },
-    { "source": "/api/(.*)",     "destination": "/api/index" }
+    { "source": "/p/:slug",      "destination": "/api/index" }
   ]
 }
