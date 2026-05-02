@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -1644,17 +1643,7 @@ code-textarea,.code-textarea{width:100%;background:var(--bg-card);border:none;co
 // ════════════════════════════════════════════════════════════════════════
 // FIREBASE
 // ════════════════════════════════════════════════════════════════════════
-const firebaseConfig = {
-  apiKey: "AIzaSyBLzocO-22pXwjNg7HFG75OQzaFjbfV_0k",
-  authDomain: "watch-be6e0.firebaseapp.com",
-  databaseURL: "https://watch-be6e0-default-rtdb.firebaseio.com",
-  projectId: "watch-be6e0",
-  storageBucket: "watch-be6e0.firebasestorage.app",
-  messagingSenderId: "1044218513896",
-  appId: "1:1044218513896:web:14db4db1291a4903dcbc5d",
-  measurementId: "G-LGLJYP7QGJ"
-};
-  
+const fbConfig={apiKey:"AIzaSyBLzocO-22pXwjNg7HFG75OQzaFjbfV_0k",authDomain:"watch-be6e0.firebaseapp.com",databaseURL:"https://watch-be6e0-default-rtdb.firebaseio.com",projectId:"watch-be6e0",storageBucket:"watch-be6e0.firebasestorage.app",messagingSenderId:"1044218513896",appId:"1:1044218513896:web:14db4db1291a4903dcbc5d",measurementId:"G-LGLJYP7QGJ"};
 firebase.initializeApp(fbConfig);
 const auth=firebase.auth(),db=firebase.database(),gp=new firebase.auth.GoogleAuthProvider();
 
