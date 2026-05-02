@@ -210,19 +210,44 @@ async function serveProject(req, res, slug, filePath) {
 
     const { uid, projectId, data } = result;
     const files = data.files || {};
+
+    // rawTarget = actual filename like "login.html" or "style.css"
     const rawTarget = filePath || (data.mainFile ? decodeKey(data.mainFile) : "index.html");
+    // target = encoded Firebase key like "login__dot__html"
     const target = encodeKey(rawTarget);
 
     if (!(target in files)) {
-      return res.status(404).send(`File <code>${rawTarget}</code> not found in project.`);
+      return res.status(404).send(
+        `<!DOCTYPE html><html><head><title>404</title></head>` +
+        `<body style="font-family:sans-serif;padding:40px;color:#555">` +
+        `<h2>404 - File not found</h2>` +
+        `<p>File <code>${rawTarget}</code> does not exist in this project.</p>` +
+        `<a href="/p/${slug}">Back to project home</a></body></html>`
+      );
     }
 
     if (!filePath) await incrementViews(`projects/${uid}/${projectId}`);
 
-    // Use rawTarget (decoded name like "index.html") to get correct extension
     const ext = rawTarget.split(".").pop()?.toLowerCase();
-    res.set("Content-Type", MIME[ext] || "text/plain; charset=utf-8");
-    res.send(files[target]);
+    const contentType = MIME[ext] || "text/plain; charset=utf-8";
+    res.set("Content-Type", contentType);
+
+    let content = files[target];
+
+    // KEY FIX: Inject <base> tag into HTML so relative links resolve correctly.
+    // Without this, href="login.html" becomes /p/login.html (wrong)
+    // With base tag, it becomes /p/project-slug/login.html (correct)
+    if (ext === "html" || ext === "htm") {
+      const baseTag = `<base href="/p/${slug}/">`;
+      const headMatch = content.match(/<head[^>]*>/i);
+      if (headMatch) {
+        content = content.replace(headMatch[0], headMatch[0] + "\n  " + baseTag);
+      } else {
+        content = baseTag + "\n" + content;
+      }
+    }
+
+    res.send(content);
   } catch (err) {
     console.error("Project serve error:", err.message);
     res.status(500).send("Server error: " + err.message);
