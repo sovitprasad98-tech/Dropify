@@ -214,12 +214,13 @@ async function serveProject(req, res, slug, filePath) {
     const target = encodeKey(rawTarget);
 
     if (!(target in files)) {
-      return res.status(404).send(`File <code>${target}</code> not found in project.`);
+      return res.status(404).send(`File <code>${rawTarget}</code> not found in project.`);
     }
 
     if (!filePath) await incrementViews(`projects/${uid}/${projectId}`);
 
-    const ext = target.split(".").pop()?.toLowerCase();
+    // Use rawTarget (decoded name like "index.html") to get correct extension
+    const ext = rawTarget.split(".").pop()?.toLowerCase();
     res.set("Content-Type", MIME[ext] || "text/plain; charset=utf-8");
     res.send(files[target]);
   } catch (err) {
