@@ -798,6 +798,54 @@ code-textarea,.code-textarea{width:100%;background:var(--bg-card);border:none;co
 .toast{will-change:transform,opacity}
 .templates-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;gap:12px}
 
+
+/* ── Premium Animations ─────────────────────────────── */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes countUp{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes slideInRight{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes barGrow{from{width:0!important}to{}}
+
+.animate-in{animation:fadeInUp .35s ease both}
+.page.active{animation:fadeIn .25s ease}
+.stat-card{animation:fadeInUp .4s ease both;transition:transform .2s,box-shadow .2s}
+.stat-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.1)}
+.stat-value{animation:countUp .5s ease both}
+.deploy-card{transition:transform .2s,box-shadow .2s;animation:fadeInUp .35s ease both}
+.deploy-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.1)}
+.chart-bar-fill{animation:barGrow .8s ease both}
+.qa{transition:transform .15s,background .15s;cursor:pointer}
+.qa:hover{transform:scale(1.04);background:var(--bg-2)}
+.nav-item{transition:background .15s,color .15s,transform .1s}
+.nav-item:hover{transform:translateX(2px)}
+.btn{transition:all .15s ease}
+.btn:active{transform:scale(.97)}
+.modal-box{animation:fadeInUp .3s ease}
+
+/* ── Skeleton Loader ────────────────────────────────── */
+.skeleton{background:linear-gradient(90deg,var(--bg-2) 25%,var(--bg) 50%,var(--bg-2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+
+/* ── Bot Card ───────────────────────────────────────── */
+.bot-status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;animation:pulse 2s infinite}
+
+/* ── Stats grid wider on desktop ────────────────────── */
+@media(min-width:768px){
+  .stats-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))!important}
+}
+
+/* ── Deploy grid responsive ─────────────────────────── */
+@media(max-width:480px){
+  .deploy-card-actions{flex-wrap:wrap;gap:6px}
+  .page-header{flex-direction:column;align-items:flex-start;gap:10px}
+  .page-actions{width:100%;display:flex;gap:8px}
+  .page-actions .btn{flex:1}
+}
+
+/* ── Batch drop zone hover ──────────────────────────── */
+#batchDropZone:hover{border-color:var(--accent2);background:var(--bg)}
+
 </style>
 </head>
 <body>
@@ -901,6 +949,11 @@ code-textarea,.code-textarea{width:100%;background:var(--bg-card);border:none;co
         <span class="nav-tooltip">Templates</span>
       </button>
       <div class="nav-group-label">Insights</div>
+      <button class="nav-item" data-page="bots" onclick="nav('bots')">
+        <i data-lucide="bot"></i>
+        <span class="nav-label">Bots</span>
+        <span class="nav-tooltip">Bots</span>
+      </button>
       <button class="nav-item" data-page="analytics" onclick="nav('analytics')">
         <i data-lucide="bar-chart-2"></i>
         <span class="nav-label">Analytics</span>
@@ -949,7 +1002,6 @@ code-textarea,.code-textarea{width:100%;background:var(--bg-card);border:none;co
       <button class="nav-item" data-drawer-page="deploy" onclick="nav('deploy');closeDrawer()"><i data-lucide="rocket"></i><span>Deploy</span><span class="nav-badge" id="dnb-deploy">0</span></button>
       <button class="nav-item" data-drawer-page="projects" onclick="nav('projects');closeDrawer()"><i data-lucide="folder-open"></i><span>Projects</span><span class="nav-badge" id="dnb-projects">0</span></button>
       <button class="nav-item" data-drawer-page="templates" onclick="nav('templates');closeDrawer()"><i data-lucide="layout-template"></i><span>Templates</span></button>
-      <button class="nav-item" onclick="window.location.href='telegram-bot.html';closeDrawer()"><i data-lucide="bot"></i><span>Host Telegram Bot</span></button>
       <div class="nav-group-label">Insights</div>
       <button class="nav-item" data-drawer-page="analytics" onclick="nav('analytics');closeDrawer()"><i data-lucide="bar-chart-2"></i><span>Analytics</span></button>
       <div class="nav-group-label">Account</div>
@@ -1045,6 +1097,14 @@ code-textarea,.code-textarea{width:100%;background:var(--bg-card);border:none;co
             <div class="stat-icon" style="background:var(--purple-lt)"><i data-lucide="globe" style="width:16px;height:16px;color:var(--purple)"></i></div>
             <div class="stat-bottom"><div class="stat-value" id="st-live">–</div><div class="stat-label">Live Sites</div></div>
           </div>
+          <div class="stat-card" onclick="nav('bots')" style="cursor:pointer">
+            <div class="stat-icon" style="background:#fdf2ff"><i data-lucide="bot" style="width:16px;height:16px;color:#a855f7"></i></div>
+            <div class="stat-bottom"><div class="stat-value" id="st-bots">–</div><div class="stat-label">Active Bots</div></div>
+          </div>
+          <div class="stat-card" onclick="nav('bots')" style="cursor:pointer">
+            <div class="stat-icon" style="background:#fff7ed"><i data-lucide="message-circle" style="width:16px;height:16px;color:#f97316"></i></div>
+            <div class="stat-bottom"><div class="stat-value" id="st-msgs">–</div><div class="stat-label">Bot Messages</div></div>
+          </div>
         </div>
 
         <div class="dash-grid">
@@ -1076,6 +1136,14 @@ code-textarea,.code-textarea{width:100%;background:var(--bg-card);border:none;co
                 <div class="qa" onclick="exportAll()">
                   <div class="qa-icon"><i data-lucide="download"></i></div>
                   <div><div class="qa-label">Export</div><div class="qa-sub">Backup JSON</div></div>
+                </div>
+                <div class="qa" onclick="window.location.href='telegram-bot.html'">
+                  <div class="qa-icon" style="background:#fdf2ff"><i data-lucide="bot" style="color:#a855f7"></i></div>
+                  <div><div class="qa-label">Host Bot</div><div class="qa-sub">Telegram bot</div></div>
+                </div>
+                <div class="qa" onclick="openBatchDeploy()">
+                  <div class="qa-icon" style="background:#fff7ed"><i data-lucide="files" style="color:#f97316"></i></div>
+                  <div><div class="qa-label">Batch Deploy</div><div class="qa-sub">Multiple files</div></div>
                 </div>
               </div>
             </div>
@@ -1154,6 +1222,20 @@ code-textarea,.code-textarea{width:100%;background:var(--bg-card);border:none;co
         <div class="templates-grid" id="templatesGrid"></div>
       </div>
 
+
+      <!-- BOTS -->
+      <div id="page-bots" class="page">
+        <div class="page-header">
+          <div class="page-title-wrap"><div class="page-title">Telegram Bots</div><div class="page-sub">Hosted bots and real-time stats</div></div>
+          <div class="page-actions">
+            <button class="btn btn-secondary btn-sm" onclick="loadBots()"><i data-lucide="refresh-cw"></i>Refresh</button>
+            <button class="btn btn-primary" onclick="window.location.href='telegram-bot.html'"><i data-lucide="plus"></i>New Bot</button>
+          </div>
+        </div>
+        <div class="analytics-stats" id="botStatsRow"></div>
+        <div id="botsContainer" style="margin-top:16px"></div>
+      </div>
+
       <!-- ANALYTICS -->
       <div id="page-analytics" class="page">
         <div class="page-header">
@@ -1174,6 +1256,10 @@ code-textarea,.code-textarea{width:100%;background:var(--bg-card);border:none;co
         <div class="chart-wrap" style="margin-top:14px">
           <div class="chart-head"><div class="chart-title">All Pages — Traffic Overview</div></div>
           <div id="analyticsTable"></div>
+        </div>
+        <div class="chart-wrap" style="margin-top:14px">
+          <div class="chart-head"><div class="chart-title">🤖 Telegram Bots — Message Analytics</div></div>
+          <div id="botAnalyticsSection"><div style="padding:20px;text-align:center;font-size:12px;color:var(--text-3)">Loading bot data...</div></div>
         </div>
       </div>
 
@@ -1273,6 +1359,10 @@ code-textarea,.code-textarea{width:100%;background:var(--bg-card);border:none;co
           <i data-lucide="folder-open"></i>
           <span class="bottom-nav-label">Projects</span>
         </div>
+        <div class="bottom-nav-item" data-bnav="bots" onclick="nav('bots')">
+          <i data-lucide="bot"></i>
+          <span class="bottom-nav-label">Bots</span>
+        </div>
         <div class="bottom-nav-item" data-bnav="analytics" onclick="nav('analytics')">
           <i data-lucide="bar-chart-2"></i>
           <span class="bottom-nav-label">Stats</span>
@@ -1344,7 +1434,41 @@ code-textarea,.code-textarea{width:100%;background:var(--bg-card);border:none;co
               <span class="code-file">index.html</span>
               <div class="code-actions"><button class="btn btn-ghost btn-sm" onclick="clearDeployCode()" style="font-size:11px">Clear</button><button class="btn btn-ghost btn-sm" onclick="previewDeployCode()" style="font-size:11px"><i data-lucide="eye" style="width:11px;height:11px"></i>Preview</button></div>
             </div>
-            <textarea class="code-textarea" id="dCode" style="min-height:160px" placeholder="<!DOCTYPE html>&#10;<html>&#10;  <body>&#10;    <h1>Hello World!</h1>&#10;  </body>&#10;</html>" oninput="schedulePreview()"></textarea>
+            <textarea class="code-textarea" id="dCode" style="min-height:160px" placeholder="<!DOCTYPE html>&#10;<html>&#10;  <body>&#10;    <h1>Hello World!</h1>&#10;  
+  <!-- BATCH DEPLOY MODAL -->
+  <div class="modal" id="batchModal">
+    <div class="modal-box" style="max-width:520px">
+      <div class="modal-head">
+        <div class="modal-title"><i data-lucide="files" style="width:16px;height:16px"></i> Batch Deploy</div>
+        <button class="modal-close" onclick="closeModal('batchModal')"><i data-lucide="x"></i></button>
+      </div>
+      <div style="padding:20px">
+        <div id="batchDropZone" onclick="document.getElementById('batchFileInput').click()"
+          style="border:2px dashed var(--border);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg-2)"
+          ondragover="event.preventDefault();this.style.borderColor='var(--accent2)'"
+          ondragleave="this.style.borderColor='var(--border)'"
+          ondrop="handleBatchDrop(event)">
+          <i data-lucide="upload-cloud" style="width:32px;height:32px;color:var(--text-3);margin-bottom:8px"></i>
+          <div style="font-size:14px;font-weight:600;color:var(--text)">Drop HTML files here</div>
+          <div style="font-size:12px;color:var(--text-3);margin-top:4px">or click to select multiple files</div>
+          <input type="file" id="batchFileInput" multiple accept=".html,.htm" style="display:none" onchange="handleBatchFiles(this.files)">
+        </div>
+        <div id="batchFileList" style="margin-top:12px;display:flex;flex-direction:column;gap:6px"></div>
+        <div id="batchProgress" style="display:none;margin-top:12px">
+          <div style="height:4px;background:var(--bg-2);border-radius:4px;overflow:hidden">
+            <div id="batchProgressBar" style="height:100%;background:var(--accent2);border-radius:4px;width:0%;transition:width .3s"></div>
+          </div>
+          <div id="batchProgressText" style="font-size:12px;color:var(--text-3);margin-top:6px;text-align:center">Deploying...</div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <button class="btn btn-secondary btn-sm" style="flex:1" onclick="closeModal('batchModal')">Cancel</button>
+          <button class="btn btn-primary" style="flex:2" id="batchDeployBtn" onclick="submitBatchDeploy()"><i data-lucide="rocket"></i>Deploy All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>&#10;</html>" oninput="schedulePreview()"></textarea>
           </div>
         </div>
         <!-- Options -->
@@ -1651,7 +1775,7 @@ const auth=firebase.auth(),db=firebase.database(),gp=new firebase.auth.GoogleAut
 // ════════════════════════════════════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════════════════════════════════════
-const S={user:null,deploys:{},projects:{},view:'grid',bulkMode:false,bulkSelected:new Set(),deployFilter:'all',currentPage:'dashboard',editorFiles:{},editorProjectId:null,editorCurrentFile:null,notifs:[],notifUnread:0};
+const S={user:null,deploys:{},projects:{},bots:{},view:'grid',bulkMode:false,bulkSelected:new Set(),deployFilter:'all',currentPage:'dashboard',editorFiles:{},editorProjectId:null,editorCurrentFile:null,notifs:[],notifUnread:0};
 let deployFileContent='',projectFiles={},previewTimer,cmdFocused=0,cmdItems=[];
 
 // ════════════════════════════════════════════════════════════════════════
@@ -1751,6 +1875,7 @@ async function initApp(u){
   await loadDeploys();
   await loadProjects();
   await loadTemplates();
+  await loadBots();
   renderDashboard();
   addNotif('Welcome back!','Dropify is ready to deploy.','info');
 }
@@ -1758,7 +1883,7 @@ async function initApp(u){
 // ════════════════════════════════════════════════════════════════════════
 // NAVIGATION
 // ════════════════════════════════════════════════════════════════════════
-const pageTitles={dashboard:'Dashboard',deploy:'Deploy',projects:'Projects',templates:'Templates',analytics:'Analytics',settings:'Settings'};
+const pageTitles={dashboard:'Dashboard',deploy:'Deploy',projects:'Projects',templates:'Templates',analytics:'Analytics',bots:'Bots',settings:'Settings'};
 function nav(page){
   S.currentPage=page;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -1772,6 +1897,7 @@ function nav(page){
   if(page==='analytics')renderAnalytics();
   if(page==='deploy')renderDeploys();
   if(page==='projects')renderProjects();
+  if(page==='bots')renderBots();
   lucide.createIcons();
 }
 let sidebarCollapsed=false;
@@ -2389,6 +2515,29 @@ function renderAnalytics(){
   const all=[...deploys.map(d=>({name:d.title,url:`/u/${d.slug}`,views:d.views||0,type:'deploy'})),...projects.map(p=>({name:p.name,url:`/p/${p.slug}`,views:p.views||0,type:'project'}))].sort((a,b)=>b.views-a.views);
   const at=el('analyticsTable');
   if(at)at.innerHTML=all.length?`<table style="width:100%;border-collapse:collapse"><thead><tr>${['Page','URL','Type','Views'].map(h=>`<th style="text-align:left;padding:8px 0;font-size:11px;color:var(--text-3);font-weight:700;border-bottom:1px solid var(--border)">${h}</th>`).join('')}</tr></thead><tbody>${all.map(r=>`<tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 0;font-size:13px;font-weight:600;color:var(--text)">${esc(r.name)}</td><td style="padding:10px 0;font-size:11px;font-family:var(--mono);color:var(--accent2)">${r.url}</td><td style="padding:10px 0"><span class="badge ${r.type==='deploy'?'badge-indigo':'badge-green'}">${r.type}</span></td><td style="padding:10px 0;text-align:left;font-size:13px;font-weight:700;color:var(--text)">${r.views}</td></tr>`).join('')}</tbody></table>`:'<div style="text-align:center;padding:30px;font-size:13px;color:var(--text-3)">No analytics data yet</div>';
+  // Bot Analytics section
+  const bots=Object.values(S.bots);
+  const runningBots=bots.filter(b=>b.status==='running');
+  const totalBotMsgs=bots.reduce((s,b)=>s+(b.messageCount||0),0);
+  const botChartWrap=document.getElementById('botAnalyticsSection');
+  if(botChartWrap){
+    const maxMsg=Math.max(...bots.map(b=>b.messageCount||0),1);
+    botChartWrap.innerHTML=bots.length?`
+      <div class="analytics-stats" style="margin-bottom:14px">
+        <div class="stat-card"><div class="stat-icon" style="background:#fdf2ff"><i data-lucide="bot" style="width:16px;height:16px;color:#a855f7"></i></div><div class="stat-bottom"><div class="stat-value">${bots.length}</div><div class="stat-label">Total Bots</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#f0fdf4"><i data-lucide="play" style="width:16px;height:16px;color:#22c55e"></i></div><div class="stat-bottom"><div class="stat-value">${runningBots.length}</div><div class="stat-label">Running</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#fff7ed"><i data-lucide="message-circle" style="width:16px;height:16px;color:#f97316"></i></div><div class="stat-bottom"><div class="stat-value">${totalBotMsgs}</div><div class="stat-label">Messages</div></div></div>
+      </div>
+      <div class="chart-bars">${bots.sort((a,b)=>(b.messageCount||0)-(a.messageCount||0)).slice(0,8).map(b=>`
+        <div class="chart-bar-row">
+          <div class="chart-bar-label">${esc(b.name)}</div>
+          <div class="chart-bar-track">
+            <div class="chart-bar-fill" style="width:${Math.round(((b.messageCount||0)/maxMsg)*100)}%;background:linear-gradient(90deg,#a855f7,#ec4899)"></div>
+            <span class="chart-bar-val">${b.messageCount||0}</span>
+          </div>
+        </div>`).join('')}
+      </div>`:'<div style="padding:20px;text-align:center;font-size:12px;color:var(--text-3)">No bots yet — <a href="telegram-bot.html" style="color:var(--accent2)">create one</a></div>';
+  }
   lucide.createIcons();
 }
 
@@ -2403,6 +2552,13 @@ function renderDashboard(){
   el('st-projects').textContent=projects.length;
   el('st-views').textContent=totalViews>=1000?(totalViews/1000).toFixed(1)+'k':totalViews;
   el('st-live').textContent=deploys.length+projects.length;
+  // Bot stats
+  const bots=Object.values(S.bots);
+  const runningBots=bots.filter(b=>b.status==='running');
+  const totalMsgs=bots.reduce((s,b)=>s+(b.messageCount||0),0);
+  if(el('st-bots'))el('st-bots').textContent=runningBots.length;
+  if(el('st-msgs'))el('st-msgs').textContent=totalMsgs>=1000?(totalMsgs/1000).toFixed(1)+'k':totalMsgs;
+  if(el('dnb-bots'))el('dnb-bots').textContent=runningBots.length;
   el('welcomeSub').textContent=`You have ${deploys.length+projects.length} live site${deploys.length+projects.length!==1?'s':''} running`;
   // Storage estimate
   let totalBytes=0;
@@ -2550,9 +2706,10 @@ function stripScripts(html){return html.replace(/<script[\s\S]*?<\/script>/gi,''
 function copyText(t){navigator.clipboard.writeText(t).then(()=>toast('Copied!','success'));}
 function fileIcon(n){const e=n.split('.').pop()?.toLowerCase();if(['html','htm','php'].includes(e))return'file-code';if(['css','scss'].includes(e))return'palette';if(['js','ts'].includes(e))return'braces';if(['json'].includes(e))return'file-json';if(['png','jpg','jpeg','gif','webp','svg'].includes(e))return'image';return'file';}
 function updateCounts(){
-  const d=Object.keys(S.deploys).length,p=Object.keys(S.projects).length;
+  const d=Object.keys(S.deploys).length,p=Object.keys(S.projects).length,b=Object.keys(S.bots).length;
   ['nb-deploy','dnb-deploy'].forEach(id=>{const e=el(id);if(e)e.textContent=d;});
   ['nb-projects','dnb-projects'].forEach(id=>{const e=el(id);if(e)e.textContent=p;});
+  if(el('dnb-bots'))el('dnb-bots').textContent=b;
   if(d>0)el('bnav-pip-deploy').style.display='block';else el('bnav-pip-deploy').style.display='none';
 }
 function openPreviewModal(url){window.open(url,'_blank');}
@@ -2582,6 +2739,178 @@ document.querySelectorAll('textarea').forEach(ta=>{
 document.addEventListener('click',e=>{
   if(!el('notifBtn')?.contains(e.target)&&!el('notifPanel')?.contains(e.target))closeNotif();
 });
+
+// ════════════════════════════════════════════════════════════════════════
+// BOTS
+// ════════════════════════════════════════════════════════════════════════
+async function loadBots(){
+  if(!S.user)return;
+  try{
+    const snap=await db.ref(`bots/${S.user.uid}`).get();
+    S.bots=snap.exists()?snap.val():{};
+    renderBots();updateCounts();renderDashboard();
+  }catch(e){console.warn('loadBots:',e.message);}
+}
+
+function renderBots(){
+  const bots=Object.entries(S.bots);
+  const statsRow=el('botStatsRow');
+  const container=el('botsContainer');
+  if(!statsRow||!container)return;
+  const running=bots.filter(([,b])=>b.status==='running').length;
+  const stopped=bots.filter(([,b])=>b.status!=='running').length;
+  const totalMsgs=bots.reduce((s,[,b])=>s+(b.messageCount||0),0);
+  statsRow.innerHTML=`
+    <div class="stat-card"><div class="stat-icon" style="background:#fdf2ff"><i data-lucide="bot" style="width:16px;height:16px;color:#a855f7"></i></div><div class="stat-bottom"><div class="stat-value">${bots.length}</div><div class="stat-label">Total Bots</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#f0fdf4"><i data-lucide="play" style="width:16px;height:16px;color:#22c55e"></i></div><div class="stat-bottom"><div class="stat-value">${running}</div><div class="stat-label">Running</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#fff1f2"><i data-lucide="square" style="width:16px;height:16px;color:#f43f5e"></i></div><div class="stat-bottom"><div class="stat-value">${stopped}</div><div class="stat-label">Stopped</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#fff7ed"><i data-lucide="message-circle" style="width:16px;height:16px;color:#f97316"></i></div><div class="stat-bottom"><div class="stat-value">${totalMsgs}</div><div class="stat-label">Messages</div></div></div>`;
+  if(!bots.length){
+    container.innerHTML=`<div class="empty"><div class="empty-icon"><i data-lucide="bot"></i></div><div class="empty-title">No bots yet</div><div class="empty-sub">Go to Bot Panel to create your first Telegram bot</div><button class="btn btn-primary" style="margin-top:14px" onclick="window.location.href='telegram-bot.html'"><i data-lucide="plus"></i>Create Bot</button></div>`;
+    lucide.createIcons();return;
+  }
+  container.innerHTML=`<div class="deploy-grid">${bots.map(([id,b])=>botCard(id,b)).join('')}</div>`;
+  lucide.createIcons();
+}
+
+function botCard(id,b){
+  const isRunning=b.status==='running';
+  const lang=(b.language||'js').toUpperCase();
+  const langColor=lang==='PYTHON'?'#3b82f6':'#f59e0b';
+  return `<div class="deploy-card animate-in" style="border-left:3px solid ${isRunning?'var(--green)':'var(--red)'}">
+    <div class="deploy-card-head">
+      <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+        <div style="width:36px;height:36px;background:#fdf2ff;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i data-lucide="bot" style="width:18px;height:18px;color:#a855f7"></i>
+        </div>
+        <div style="min-width:0">
+          <div style="font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(b.name)}</div>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:3px">
+            <span class="badge" style="background:${isRunning?'var(--green-lt)':'var(--red-lt)'};color:${isRunning?'var(--green)':'var(--red)'}">
+              ${isRunning?'● Running':'■ Stopped'}
+            </span>
+            <span class="badge" style="background:${langColor}22;color:${langColor}">${lang}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:0 14px 10px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="background:var(--bg-2);border-radius:8px;padding:8px;text-align:center">
+        <div style="font-size:18px;font-weight:800;color:var(--text)">${b.messageCount||0}</div>
+        <div style="font-size:10px;color:var(--text-3)">Messages</div>
+      </div>
+      <div style="background:var(--bg-2);border-radius:8px;padding:8px;text-align:center">
+        <div style="font-size:18px;font-weight:800;color:var(--text)">${b.errorCount||0}</div>
+        <div style="font-size:10px;color:var(--text-3)">Errors</div>
+      </div>
+    </div>
+    ${b.description?`<div style="padding:0 14px 10px;font-size:12px;color:var(--text-2)">${esc(b.description)}</div>`:''}
+    <div class="deploy-card-actions">
+      <button class="btn btn-secondary btn-sm" onclick="window.location.href='telegram-bot.html'"><i data-lucide="pencil"></i>Edit</button>
+      <button class="btn btn-ghost btn-sm" onclick="copyText('${b.token||''}')" title="Copy token"><i data-lucide="copy"></i></button>
+      <span style="font-size:10px;color:var(--text-3);margin-left:auto">${fmtDate(b.createdAt)}</span>
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// BATCH DEPLOY
+// ════════════════════════════════════════════════════════════════════════
+let batchFiles=[];
+
+function openBatchDeploy(){batchFiles=[];renderBatchList();openModal('batchModal');}
+
+function handleBatchDrop(e){
+  e.preventDefault();
+  document.getElementById('batchDropZone').style.borderColor='var(--border)';
+  const files=[...e.dataTransfer.files].filter(f=>f.name.match(/\.html?$/i));
+  addBatchFiles(files);
+}
+
+function handleBatchFiles(fileList){
+  addBatchFiles([...fileList]);
+}
+
+function addBatchFiles(files){
+  files.forEach(f=>{
+    if(!batchFiles.find(x=>x.name===f.name))batchFiles.push(f);
+  });
+  renderBatchList();
+}
+
+function renderBatchList(){
+  const el2=el('batchFileList');
+  if(!batchFiles.length){el2.innerHTML='';return;}
+  el2.innerHTML=batchFiles.map((f,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg-2);border-radius:8px">
+      <i data-lucide="file-code" style="width:14px;height:14px;color:var(--accent2)"></i>
+      <span style="flex:1;font-size:13px;font-weight:500">${esc(f.name)}</span>
+      <span style="font-size:11px;color:var(--text-3)">${fmtBytes(f.size)}</span>
+      <button onclick="batchFiles.splice(${i},1);renderBatchList()" style="border:none;background:none;cursor:pointer;color:var(--text-3)"><i data-lucide="x" style="width:12px;height:12px"></i></button>
+    </div>`).join('');
+  lucide.createIcons();
+}
+
+async function submitBatchDeploy(){
+  if(!batchFiles.length)return toast('No files selected','error');
+  if(!S.user)return toast('Please login first','error');
+  const btn=el('batchDeployBtn');btn.disabled=true;
+  const prog=el('batchProgress');const bar=el('batchProgressBar');const txt=el('batchProgressText');
+  prog.style.display='block';
+  let done=0;const total=batchFiles.length;const results=[];
+  for(const file of batchFiles){
+    try{
+      const html=await new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsText(file);});
+      const slug=file.name.replace(/\.html?$/i,'').toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/-+/g,'-').slice(0,30)+'-'+Math.random().toString(36).slice(2,6);
+      const id=db.ref().push().key;
+      const data={title:file.name.replace(/\.html?$/i,''),html,slug,createdAt:Date.now(),updatedAt:Date.now(),views:0,passwordProtected:false};
+      await db.ref(`deploys/${S.user.uid}/${id}`).set(data);
+      await db.ref(`slugs/${slug}`).set({uid:S.user.uid,deployId:id});
+      S.deploys[id]=data;results.push({name:file.name,url:`/u/${slug}`,ok:true});
+    }catch(e){results.push({name:file.name,ok:false,err:e.message});}
+    done++;bar.style.width=Math.round((done/total)*100)+'%';txt.textContent=`${done}/${total} deployed`;
+  }
+  btn.disabled=false;
+  const ok=results.filter(r=>r.ok).length;
+  toast(`${ok}/${total} files deployed successfully`,'success',4000);
+  renderDeploys();updateCounts();renderDashboard();
+  setTimeout(()=>closeModal('batchModal'),1500);
+}
+
 </script>
+
+  <!-- BATCH DEPLOY MODAL -->
+  <div class="modal" id="batchModal">
+    <div class="modal-box" style="max-width:520px">
+      <div class="modal-head">
+        <div class="modal-title"><i data-lucide="files" style="width:16px;height:16px"></i> Batch Deploy</div>
+        <button class="modal-close" onclick="closeModal('batchModal')"><i data-lucide="x"></i></button>
+      </div>
+      <div style="padding:20px">
+        <div id="batchDropZone" onclick="document.getElementById('batchFileInput').click()"
+          style="border:2px dashed var(--border);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg-2)"
+          ondragover="event.preventDefault();this.style.borderColor='var(--accent2)'"
+          ondragleave="this.style.borderColor='var(--border)'"
+          ondrop="handleBatchDrop(event)">
+          <i data-lucide="upload-cloud" style="width:32px;height:32px;color:var(--text-3);margin-bottom:8px"></i>
+          <div style="font-size:14px;font-weight:600;color:var(--text)">Drop HTML files here</div>
+          <div style="font-size:12px;color:var(--text-3);margin-top:4px">or click to select multiple files</div>
+          <input type="file" id="batchFileInput" multiple accept=".html,.htm" style="display:none" onchange="handleBatchFiles(this.files)">
+        </div>
+        <div id="batchFileList" style="margin-top:12px;display:flex;flex-direction:column;gap:6px"></div>
+        <div id="batchProgress" style="display:none;margin-top:12px">
+          <div style="height:4px;background:var(--bg-2);border-radius:4px;overflow:hidden">
+            <div id="batchProgressBar" style="height:100%;background:var(--accent2);border-radius:4px;width:0%;transition:width .3s"></div>
+          </div>
+          <div id="batchProgressText" style="font-size:12px;color:var(--text-3);margin-top:6px;text-align:center">Deploying...</div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <button class="btn btn-secondary btn-sm" style="flex:1" onclick="closeModal('batchModal')">Cancel</button>
+          <button class="btn btn-primary" style="flex:2" id="batchDeployBtn" onclick="submitBatchDeploy()"><i data-lucide="rocket"></i>Deploy All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
