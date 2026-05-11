@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dropify — Telegram Bots</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px;-webkit-tap-highlight-color:transparent}
+body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font-family:inherit;outline:none}
+button{cursor:pointer;border:none;background:none}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+:root{
+  --bg:#fafafa;--bg-card:#fff;--bg-2:#f4f4f5;--bg-3:#ececed;--bg-4:#e4e4e7;
+  --border:#e4e4e7;--border2:#d1d1d6;
+  --text:#09090b;--text-2:#52525b;--text-3:#a1a1aa;
+  --accent:#18181b;--accent-fg:#fff;
+  --tg:#2AABEE;--tg-lt:#e8f6ff;--tg-dk:#1a8fd1;
+  --green:#16a34a;--green-lt:#f0fdf4;
+  --red:#dc2626;--red-lt:#fef2f2;
+  --amber:#d97706;--amber-lt:#fffbeb;
+  --blue:#2563eb;--blue-lt:#eff6ff;
+  --purple:#7c3aed;--purple-lt:#f5f3ff;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.07);
+  --shadow:0 4px 12px rgba(0,0,0,.08);
+  --shadow-lg:0 12px 32px rgba(0,0,0,.1);
+  --shadow-xl:0 24px 48px rgba(0,0,0,.12);
+  --r:8px;--r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:18px;--r-2xl:24px;
+  --mono:'JetBrains Mono',monospace;--header:56px;--tr:.15s ease;
+}
+[data-theme="dark"]{
+  --bg:#09090b;--bg-card:#111113;--bg-2:#18181b;--bg-3:#27272a;--bg-4:#3f3f46;
+  --border:#27272a;--border2:#3f3f46;
+  --text:#fafafa;--text-2:#a1a1aa;--text-3:#52525b;
+  --accent:#fafafa;--accent-fg:#09090b;
+  --tg-lt:#0a2030;
+  --green-lt:#052e16;--red-lt:#450a0a;--amber-lt:#431407;--blue-lt:#1e3a5f;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.3);--shadow:0 4px 12px rgba(0,0,0,.35);
+  --shadow-lg:0 12px 32px rgba(0,0,0,.4);--shadow-xl:0 24px 48px rgba(0,0,0,.5);
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes toastIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* Util */
+.hidden{display:none!important}
+.flex{display:flex}.aic{align-items:center}.jsb{justify-content:space-between}.jcc{justify-content:center}.fdc{flex-direction:column}
+.g4{gap:4px}.g6{gap:6px}.g8{gap:8px}.g12{gap:12px}.g16{gap:16px}.g20{gap:20px}
+.mono{font-family:var(--mono)}.truncate{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:var(--r);font-size:13px;font-weight:600;padding:0 14px;height:36px;transition:all var(--tr);cursor:pointer;border:1px solid transparent;white-space:nowrap}
+.btn:active{transform:scale(.97)}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;pointer-events:none}
+.btn svg{width:14px;height:14px;flex-shrink:0}
+.btn-sm{height:30px;padding:0 11px;font-size:12px;border-radius:var(--r-sm)}.btn-sm svg{width:13px;height:13px}
+.btn-lg{height:42px;padding:0 20px;font-size:14px;border-radius:var(--r-md)}
+.btn-icon-sm{padding:0;width:30px;height:30px;flex-shrink:0;border-radius:var(--r-sm)}
+.btn-full{width:100%;justify-content:center}
+.btn-tg{background:var(--tg);color:#fff;border-color:var(--tg)}.btn-tg:hover{background:var(--tg-dk);border-color:var(--tg-dk)}
+.btn-primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}.btn-primary:hover{opacity:.85}
+.btn-secondary{background:var(--bg-card);color:var(--text);border-color:var(--border);box-shadow:var(--shadow-sm)}.btn-secondary:hover{background:var(--bg-2)}
+.btn-ghost{color:var(--text-2)}.btn-ghost:hover{background:var(--bg-2);color:var(--text)}
+.btn-danger{background:var(--red-lt);color:var(--red);border-color:transparent}.btn-danger:hover{background:var(--red);color:#fff}
+.btn-success{background:var(--green-lt);color:var(--green);border-color:transparent}.btn-success:hover{background:var(--green);color:#fff}
+
+/* Inputs */
+.input{width:100%;background:var(--bg-card);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px;padding:0 12px;height:38px;transition:border-color var(--tr);display:block}
+.input:focus{border-color:var(--tg);box-shadow:0 0 0 3px rgba(42,171,238,.12)}
+.input::placeholder{color:var(--text-3)}
+textarea.input{height:auto;padding:10px 12px;resize:vertical;line-height:1.6;min-height:80px}
+.label{font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:5px}
+.hint{font-size:11px;color:var(--text-3);margin-top:4px}
+.input-group{display:flex;flex-direction:column;gap:0}
+
+/* Cards */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm)}
+.card-pad{padding:18px}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.badge-green{background:var(--green-lt);color:var(--green)}
+.badge-red{background:var(--red-lt);color:var(--red)}
+.badge-gray{background:var(--bg-3);color:var(--text-2)}
+.badge-tg{background:var(--tg-lt);color:var(--tg)}
+.badge-amber{background:var(--amber-lt);color:var(--amber)}
+.badge-blue{background:var(--blue-lt);color:var(--blue)}
+
+/* Toggle */
+.toggle{position:relative;width:38px;height:22px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;background:var(--bg-3);border-radius:11px;cursor:pointer;transition:background var(--tr);border:1.5px solid var(--border)}
+.toggle-track::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:50%;transform:translateY(-50%);background:var(--text-3);border-radius:50%;transition:all var(--tr)}
+.toggle input:checked + .toggle-track{background:var(--tg);border-color:var(--tg)}
+.toggle input:checked + .toggle-track::before{transform:translateY(-50%) translateX(16px);background:#fff}
+
+/* Skeleton */
+.skeleton{background:linear-gradient(90deg,var(--bg-3) 25%,var(--bg-4) 50%,var(--bg-3) 75%);background-size:300% 100%;animation:shimmer 1.5s infinite;border-radius:var(--r-sm)}
+
+/* Header */
+#header{height:var(--header);background:var(--bg-card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;position:sticky;top:0;z-index:100}
+.header-back{width:34px;height:34px;border-radius:var(--r-sm);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-2);transition:all var(--tr);flex-shrink:0}
+.header-back:hover{background:var(--bg-2);color:var(--text)}
+.header-icon{width:32px;height:32px;background:var(--tg);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.header-icon svg{width:16px;height:16px;color:#fff}
+.header-title{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.3px}
+.header-sub{font-size:12px;color:var(--text-3)}
+.header-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+
+/* Content */
+#content{padding:22px;max-width:1200px;margin:0 auto}
+@media(max-width:600px){#content{padding:14px}}
+
+/* Bot Grid */
+.bot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+@media(max-width:600px){.bot-grid{grid-template-columns:1fr}}
+
+/* Bot Card */
+.bot-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden;transition:all var(--tr);animation:fadeUp .3s ease both}
+.bot-card:hover{box-shadow:var(--shadow);border-color:var(--border2);transform:translateY(-1px)}
+.bot-card-header{padding:16px 16px 12px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+.bot-avatar{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff;flex-shrink:0;position:relative}
+.bot-avatar svg{width:22px;height:22px;color:#fff}
+.status-ring{position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-radius:50%;border:2px solid var(--bg-card);display:flex;align-items:center;justify-content:center}
+.status-ring.running{background:var(--green)}
+.status-ring.stopped{background:var(--text-3)}
+.status-ring.error{background:var(--red)}
+.bot-info{flex:1;min-width:0}
+.bot-name{font-size:15px;font-weight:700;color:var(--text)}
+.bot-username{font-size:12px;color:var(--tg);font-family:var(--mono);margin-top:2px}
+.bot-card-body{padding:12px 16px}
+.bot-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.bot-stat{text-align:center;padding:8px;background:var(--bg-2);border-radius:var(--r)}
+.bot-stat-val{font-size:17px;font-weight:700;color:var(--text);line-height:1}
+.bot-stat-lbl{font-size:10px;color:var(--text-3);margin-top:3px;font-weight:500}
+.bot-webhook{background:var(--bg-2);border-radius:var(--r-sm);padding:8px 10px;display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.bot-webhook-url{font-family:var(--mono);font-size:10px;color:var(--tg);flex:1;truncate}
+.bot-card-actions{display:flex;gap:5px;flex-wrap:wrap}
+
+/* Modals */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(4px)}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-2xl);box-shadow:var(--shadow-xl);width:100%;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;transform:scale(.95) translateY(10px);transition:transform .22s cubic-bezier(.34,1.3,.64,1)}
+.modal-overlay.open .modal{transform:scale(1) translateY(0)}
+.modal-sm{max-width:420px}.modal-md{max-width:560px}.modal-lg{max-width:760px}.modal-xl{max-width:980px}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;justify-content:space-between}
+.modal-head-left{display:flex;align-items:center;gap:10px}
+.modal-icon{width:30px;height:30px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--tg-lt)}
+.modal-icon svg{width:14px;height:14px;color:var(--tg)}
+.modal-title{font-size:15px;font-weight:700;color:var(--text)}
+.modal-close{width:28px;height:28px;border-radius:var(--r-sm);background:var(--bg-2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-2);transition:all var(--tr);border:none}
+.modal-close:hover{background:var(--bg-3)}
+.modal-close svg{width:13px;height:13px}
+.modal-body{padding:20px;overflow-y:auto;flex:1}
+.modal-foot{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;flex-shrink:0;background:var(--bg-2)}
+
+/* Code editor */
+.code-box{border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden}
+.code-bar{background:var(--bg-2);padding:8px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.code-dots{display:flex;gap:5px}
+.code-dot{width:10px;height:10px;border-radius:50%}.dot-r{background:#ff5f57}.dot-y{background:#febc2e}.dot-g{background:#28c840}
+.code-file{font-family:var(--mono);font-size:11px;color:var(--text-3)}
+.code-area{width:100%;background:var(--bg-card);border:none;color:var(--text);font-family:var(--mono);font-size:12.5px;line-height:1.7;padding:14px;outline:none;resize:vertical;min-height:200px;display:block;tab-size:2}
+
+/* Env vars */
+.env-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.env-key{width:140px;flex-shrink:0}
+.env-val{flex:1}
+.env-del{width:28px;height:28px;border-radius:var(--r-sm);background:var(--red-lt);color:var(--red);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;border:none;transition:all var(--tr)}
+.env-del:hover{background:var(--red);color:#fff}
+.env-del svg{width:12px;height:12px}
+
+/* Console */
+.console-wrap{background:#0d0d0d;border-radius:var(--r-lg);overflow:hidden;height:400px;display:flex;flex-direction:column}
+.console-header{background:#1a1a1a;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #333;flex-shrink:0}
+.console-header-title{font-family:var(--mono);font-size:11px;color:#888;display:flex;align-items:center;gap:6px}
+.console-header-title svg{width:12px;height:12px}
+.console-body{flex:1;overflow-y:auto;padding:10px 12px;font-family:var(--mono);font-size:12px;line-height:1.7}
+.clog{padding:2px 0;border-bottom:1px solid rgba(255,255,255,.03)}
+.clog.log{color:#cdd6f4}.clog.warn{color:#f9e2af;background:rgba(249,226,175,.04)}
+.clog.error{color:#f38ba8;background:rgba(243,139,168,.04)}.clog.info{color:#89dceb}
+.clog.system{color:#45475a;font-style:italic}
+.clog-time{opacity:.35;margin-right:8px;font-size:10px}
+.clog-prefix{opacity:.4;margin-right:6px}
+.console-empty{display:flex;align-items:center;justify-content:center;height:100%;color:#444;font-size:12px;font-family:var(--mono)}
+
+/* File drop */
+.dropzone{border:2px dashed var(--border2);border-radius:var(--r-lg);padding:30px;text-align:center;cursor:pointer;transition:all var(--tr);background:var(--bg-card)}
+.dropzone:hover,.dropzone.drag{border-color:var(--tg);background:var(--tg-lt)}
+.dropzone svg{width:28px;height:28px;color:var(--text-3);margin-bottom:8px;transition:color var(--tr)}
+.dropzone:hover svg,.dropzone.drag svg{color:var(--tg)}
+.dropzone-title{font-size:13px;font-weight:600;color:var(--text-2)}
+.dropzone-sub{font-size:11px;color:var(--text-3);margin-top:4px}
+
+/* Section */
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-title{font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.4px}
+
+/* Steps */
+.steps{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+.step{display:flex;gap:12px;align-items:flex-start}
+.step-num{width:24px;height:24px;border-radius:50%;background:var(--tg);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-info{}
+.step-label{font-size:13px;font-weight:600;color:var(--text)}
+.step-sub{font-size:12px;color:var(--text-3);margin-top:2px;line-height:1.4}
+
+/* Tabs */
+.tabs{display:flex;gap:2px;background:var(--bg-2);border-radius:var(--r);padding:3px;margin-bottom:16px}
+.tab{flex:1;height:32px;border-radius:calc(var(--r) - 2px);font-size:13px;font-weight:600;color:var(--text-3);transition:all var(--tr);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px}
+.tab.active{background:var(--bg-card);color:var(--text);box-shadow:var(--shadow-sm)}
+.tab svg{width:13px;height:13px}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* Empty */
+.empty{text-align:center;padding:60px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;animation:fadeUp .4s ease}
+.empty-icon{width:64px;height:64px;border-radius:20px;background:var(--tg-lt);display:flex;align-items:center;justify-content:center;border:1px solid rgba(42,171,238,.2)}
+.empty-icon svg{width:28px;height:28px;color:var(--tg)}
+.empty-title{font-size:18px;font-weight:700;color:var(--text)}
+.empty-sub{font-size:13px;color:var(--text-2);max-width:320px;line-height:1.5}
+
+/* Toast */
+#toasts{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:11px 14px;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text);min-width:220px;animation:toastIn .25s ease;cursor:pointer}
+.toast-icon{width:26px;height:26px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.toast-icon svg{width:13px;height:13px}
+.toast-msg{flex:1;font-weight:500}
+.toast.success .toast-icon{background:var(--green-lt);color:var(--green)}
+.toast.error .toast-icon{background:var(--red-lt);color:var(--red)}
+.toast.info .toast-icon{background:var(--tg-lt);color:var(--tg)}
+.toast.warn .toast-icon{background:var(--amber-lt);color:var(--amber)}
+
+/* Spinner */
+.spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
+.spinner-tg{border-color:rgba(42,171,238,.2);border-top-color:var(--tg)}
+
+/* Live dot */
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s ease infinite;flex-shrink:0}
+
+/* Log stats bar */
+.log-stats{display:flex;gap:12px;padding:8px 12px;background:var(--bg-2);border-radius:var(--r-sm);font-size:11px;color:var(--text-3);font-family:var(--mono);margin-bottom:8px}
+.log-stat{display:flex;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header id="header">
+  <button class="header-back" onclick="location.href='./'"><i data-lucide="arrow-left" style="width:16px;height:16px"></i></button>
+  <div class="header-icon"><i data-lucide="send"></i></div>
+  <div>
+    <div class="header-title">Telegram Bots</div>
+    <div class="header-sub" id="headerSub">Loading…</div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-ghost btn-sm" onclick="toggleTheme()"><i data-lucide="sun" id="themeIcon"></i></button>
+    <button class="btn btn-tg" onclick="openCreateModal()"><i data-lucide="plus"></i>New Bot</button>
+  </div>
+</header>
+
+<!-- CONTENT -->
+<div id="content">
+  <!-- Loading state -->
+  <div id="loadingState" style="text-align:center;padding:60px;color:var(--text-3)">
+    <div class="spinner spinner-tg" style="margin:0 auto 12px"></div>
+    <div style="font-size:13px">Loading bots…</div>
+  </div>
+
+  <!-- Bot list -->
+  <div id="botSection" class="hidden">
+    <div class="section-head">
+      <div class="section-title" id="botCount">Your Bots</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-secondary btn-sm" onclick="loadBots()"><i data-lucide="refresh-cw"></i>Refresh</button>
+        <button class="btn btn-tg" onclick="openCreateModal()"><i data-lucide="plus"></i>New Bot</button>
+      </div>
+    </div>
+    <div class="bot-grid" id="botGrid"></div>
+  </div>
+</div>
+
+<!-- ═══ CREATE / EDIT BOT MODAL ═══════════════════════════════════════ -->
+<div class="modal-overlay" id="createModal">
+  <div class="modal modal-xl">
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <div class="modal-icon"><i data-lucide="send"></i></div>
+        <div class="modal-title" id="createModalTitle">Deploy New Bot</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('createModal')"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editBotId">
+      <div class="tabs" id="createTabs">
+        <div class="tab active" onclick="switchTab('basic')" data-tab="basic"><i data-lucide="settings"></i>Basic</div>
+        <div class="tab" onclick="switchTab('code')" data-tab="code"><i data-lucide="code-2"></i>Bot Code</div>
+        <div class="tab" onclick="switchTab('env')" data-tab="env"><i data-lucide="key"></i>Env Vars</div>
+        <div class="tab" onclick="switchTab('upload')" data-tab="upload"><i data-lucide="upload"></i>Upload ZIP</div>
+      </div>
+
+      <!-- Tab: Basic -->
+      <div class="tab-panel active" id="tab-basic">
+        <div class="steps" style="margin-bottom:18px">
+          <div class="step"><div class="step-num">1</div><div class="step-info"><div class="step-label">Get your bot token from @BotFather</div><div class="step-sub">Open Telegram → search @BotFather → /newbot → follow steps → copy the token</div></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-info"><div class="step-label">Enter details below and write your bot code</div></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-info"><div class="step-label">Click Deploy — webhook is auto-configured!</div></div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="input-group">
+              <label class="label">Bot Name *</label>
+              <input class="input" type="text" id="botName" placeholder="My Awesome Bot">
+            </div>
+            <div class="input-group">
+              <label class="label">Bot Token * <span style="color:var(--text-3);font-weight:400">(from @BotFather)</span></label>
+              <input class="input" type="password" id="botToken" placeholder="1234567890:ABCDefGhiJKlmNOpqrSTUvwxYZ">
+              <div class="hint">Stored securely in your Firebase database</div>
+            </div>
+          </div>
+          <div class="input-group">
+            <label class="label">Description <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
+            <input class="input" type="text" id="botDesc" placeholder="What does this bot do?">
+          </div>
+          <div style="background:var(--tg-lt);border:1px solid rgba(42,171,238,.25);border-radius:var(--r-md);padding:12px 14px;font-size:12px;color:var(--tg);display:flex;align-items:flex-start;gap:8px">
+            <i data-lucide="info" style="width:14px;height:14px;flex-shrink:0;margin-top:1px"></i>
+            <div><strong>Supported:</strong> JavaScript (Node.js style). Your bot code runs on Dropify's serverless backend. Available APIs: sendMessage, sendPhoto, sendDocument, sendVideo, reply, answerCallback, editMessage, deleteMessage, getChatMember, banMember + full fetch API.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Code -->
+      <div class="tab-panel" id="tab-code">
+        <div style="margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:12px;color:var(--text-2)">Write your bot logic. The <code style="background:var(--bg-2);padding:1px 5px;border-radius:4px;font-family:var(--mono)">update</code> object contains the Telegram update.</div>
+          <button class="btn btn-secondary btn-sm" onclick="loadTemplate()"><i data-lucide="layout-template"></i>Load Template</button>
+        </div>
+        <div class="code-box">
+          <div class="code-bar">
+            <div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div>
+            <span class="code-file">bot.js</span>
+            <div style="margin-left:auto;display:flex;gap:6px">
+              <button class="btn btn-ghost btn-sm" onclick="formatCode()" style="font-size:10px">Format</button>
+            </div>
+          </div>
+          <textarea class="code-area" id="botCode" style="min-height:340px" placeholder="// Your bot code here
+// Available: update, env, sendMessage, reply, sendPhoto, log, etc.
+
+const msg = update.message;
+if (!msg) return;
+
+const text = msg.text || '';
+const chatId = msg.chat.id;
+const name = msg.from?.first_name || 'User';
+
+if (text === '/start') {
+  await reply(`Welcome ${name}! 🤖\n\nI am your custom Telegram bot hosted on Dropify.`);
+} else if (text === '/help') {
+  await reply('Available commands:\n/start - Start the bot\n/help - Show this message\n/echo - Echo your message');
+} else if (text.startsWith('/echo ')) {
+  const echoText = text.slice(6);
+  await reply(echoText);
+} else {
+  await reply('Unknown command. Try /help');
+}"></textarea>
+        </div>
+        <div style="margin-top:10px;background:var(--bg-2);border-radius:var(--r-sm);padding:10px 12px">
+          <div style="font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px;letter-spacing:.5px">AVAILABLE FUNCTIONS</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;font-family:var(--mono);font-size:10.5px">
+            <span style="background:var(--tg-lt);color:var(--tg);padding:2px 7px;border-radius:4px">sendMessage(chatId, text, opts?)</span>
+            <span style="background:var(--tg-lt);color:var(--tg);padding:2px 7px;border-radius:4px">reply(text, opts?)</span>
+            <span style="background:var(--tg-lt);color:var(--tg);padding:2px 7px;border-radius:4px">sendPhoto(chatId, url, opts?)</span>
+            <span style="background:var(--tg-lt);color:var(--tg);padding:2px 7px;border-radius:4px">sendDocument(chatId, url)</span>
+            <span style="background:var(--tg-lt);color:var(--tg);padding:2px 7px;border-radius:4px">sendVideo(chatId, url)</span>
+            <span style="background:var(--tg-lt);color:var(--tg);padding:2px 7px;border-radius:4px">editMessage(chatId, msgId, text)</span>
+            <span style="background:var(--tg-lt);color:var(--tg);padding:2px 7px;border-radius:4px">deleteMessage(chatId, msgId)</span>
+            <span style="background:var(--tg-lt);color:var(--tg);padding:2px 7px;border-radius:4px">answerCallback(cbId, text?)</span>
+            <span style="background:var(--tg-lt);color:var(--tg);padding:2px 7px;border-radius:4px">getChatMember(chatId, userId)</span>
+            <span style="background:var(--tg-lt);color:var(--tg);padding:2px 7px;border-radius:4px">banMember(chatId, userId)</span>
+            <span style="background:var(--bg-3);color:var(--text-2);padding:2px 7px;border-radius:4px">log(...args)</span>
+            <span style="background:var(--bg-3);color:var(--text-2);padding:2px 7px;border-radius:4px">env.KEY</span>
+            <span style="background:var(--bg-3);color:var(--text-2);padding:2px 7px;border-radius:4px">fetch(url, opts?)</span>
+            <span style="background:var(--bg-3);color:var(--text-2);padding:2px 7px;border-radius:4px">update.message</span>
+            <span style="background:var(--bg-3);color:var(--text-2);padding:2px 7px;border-radius:4px">update.callback_query</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Env -->
+      <div class="tab-panel" id="tab-env">
+        <div style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">Environment Variables</div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:3px">Access in bot code as <code style="background:var(--bg-2);padding:1px 5px;border-radius:4px;font-family:var(--mono)">env.VARIABLE_NAME</code></div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="addEnvRow()"><i data-lucide="plus"></i>Add Variable</button>
+        </div>
+        <div id="envRows"></div>
+        <div style="background:var(--amber-lt);border:1px solid rgba(217,119,6,.2);border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:var(--amber);display:flex;gap:8px;margin-top:12px">
+          <i data-lucide="alert-triangle" style="width:13px;height:13px;flex-shrink:0;margin-top:1px"></i>
+          Variables are stored in your Firebase. Do not store highly sensitive secrets in a personal-use tool.
+        </div>
+      </div>
+
+      <!-- Tab: Upload ZIP -->
+      <div class="tab-panel" id="tab-upload">
+        <div style="margin-bottom:12px">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">Upload Bot as ZIP File</div>
+          <div style="font-size:12px;color:var(--text-2);line-height:1.5">Upload a ZIP containing your bot code. If a <code style="background:var(--bg-2);padding:1px 5px;border-radius:4px;font-family:var(--mono)">.env</code> file is found, environment variables are auto-imported. Main entry file: <code style="background:var(--bg-2);padding:1px 5px;border-radius:4px;font-family:var(--mono)">bot.js</code> or <code style="background:var(--bg-2);padding:1px 5px;border-radius:4px;font-family:var(--mono)">index.js</code></div>
+        </div>
+        <div class="dropzone" id="zipDropzone" onclick="document.getElementById('zipFile').click()" ondragover="onDrag(event,'zipDropzone',true)" ondragleave="onDrag(event,'zipDropzone',false)" ondrop="onZipDrop(event)">
+          <input type="file" id="zipFile" accept=".zip" style="display:none" onchange="handleZipUpload(event)">
+          <i data-lucide="file-archive"></i>
+          <div class="dropzone-title">Drop ZIP file here or click to browse</div>
+          <div class="dropzone-sub">Supports: bot.js / index.js + .env auto-import</div>
+          <div style="margin-top:8px"><span class="badge badge-tg">.zip</span></div>
+        </div>
+        <div id="zipPreview" class="hidden" style="margin-top:12px">
+          <div style="background:var(--green-lt);border:1px solid rgba(22,163,74,.2);border-radius:var(--r-md);padding:12px 14px">
+            <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:8px;display:flex;align-items:center;gap:6px"><i data-lucide="check-circle" style="width:14px;height:14px"></i>ZIP Extracted</div>
+            <div id="zipFileList" style="display:flex;flex-direction:column;gap:4px;font-family:var(--mono);font-size:11px;color:var(--text-2)"></div>
+          </div>
+        </div>
+        <div style="margin-top:14px;background:var(--bg-2);border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:var(--text-2)">
+          <strong>ZIP structure example:</strong>
+          <pre style="margin-top:6px;font-family:var(--mono);font-size:11px;color:var(--text-3);line-height:1.6">my-bot.zip
+├── bot.js       ← main entry (required)
+├── .env         ← auto-imported as env vars
+└── helpers.js   ← optional (not yet supported)</pre>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeModal('createModal')">Cancel</button>
+      <button class="btn btn-tg btn-lg" id="deployBtn" onclick="deployBot()">
+        <i data-lucide="send"></i><span id="deployBtnLabel">Deploy Bot</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CONSOLE MODAL ═════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="consoleModal">
+  <div class="modal modal-xl">
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <div class="modal-icon" style="background:#1a1a2e"><i data-lucide="terminal" style="color:#89dceb"></i></div>
+        <div>
+          <div class="modal-title">Console — <span id="consoleBotName" style="color:var(--tg)"></span></div>
+          <div style="font-size:11px;color:var(--text-3);display:flex;align-items:center;gap:6px;margin-top:2px">
+            <div class="live-dot" id="consoleLiveDot"></div>
+            <span id="consoleStatus">Live</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span id="consoleLogCount" style="font-size:11px;color:var(--text-3);font-family:var(--mono)">0 logs</span>
+        <button class="btn btn-secondary btn-sm" onclick="clearConsoleLogs()"><i data-lucide="trash-2"></i>Clear</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportLogs()"><i data-lucide="download"></i>Export</button>
+        <button class="modal-close" onclick="closeConsole()"><i data-lucide="x"></i></button>
+      </div>
+    </div>
+    <div class="modal-body" style="padding:14px;background:#0d0d0d;display:flex;flex-direction:column;gap:10px">
+      <div class="log-stats" style="background:#1a1a1a;border-radius:var(--r-sm);border:1px solid #333">
+        <div class="log-stat"><span style="color:#cdd6f4">●</span><span id="cs-log">0 logs</span></div>
+        <div class="log-stat"><span style="color:#f9e2af">▲</span><span id="cs-warn">0 warns</span></div>
+        <div class="log-stat"><span style="color:#f38ba8">✖</span><span id="cs-error">0 errors</span></div>
+        <div class="log-stat" style="margin-left:auto"><span style="color:#45475a">Last:</span><span id="cs-last">–</span></div>
+      </div>
+      <div class="console-wrap" style="height:460px">
+        <div class="console-body" id="consoleBody">
+          <div class="console-empty">No logs yet. Send a message to your bot!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ENV VARS MODAL ════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="envModal">
+  <div class="modal modal-md">
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <div class="modal-icon"><i data-lucide="key"></i></div>
+        <div class="modal-title">Environment Variables — <span id="envBotName" style="color:var(--tg)"></span></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('envModal')"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+        <button class="btn btn-secondary btn-sm" onclick="addEnvRowModal()"><i data-lucide="plus"></i>Add Variable</button>
+      </div>
+      <div id="envRowsModal"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeModal('envModal')">Cancel</button>
+      <button class="btn btn-tg" onclick="saveEnvVars()"><i data-lucide="save"></i>Save Variables</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ WEBHOOK INFO MODAL ════════════════════════════════════════════ -->
+<div class="modal-overlay" id="webhookModal">
+  <div class="modal modal-md">
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <div class="modal-icon"><i data-lucide="link"></i></div>
+        <div class="modal-title">Webhook Info</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('webhookModal')"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div>
+          <div class="label">Webhook URL</div>
+          <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px;font-family:var(--mono);font-size:12px;color:var(--tg);word-break:break-all;margin-bottom:6px" id="webhookUrl"></div>
+          <button class="btn btn-secondary btn-sm" onclick="copyWebhook()"><i data-lucide="copy"></i>Copy</button>
+        </div>
+        <div>
+          <div class="label">Webhook Status</div>
+          <div id="webhookStatusBox" style="background:var(--bg-2);border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:var(--text-2)">Loading…</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-tg btn-sm" onclick="setWebhookNow()"><i data-lucide="refresh-cw"></i>Re-register Webhook</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteWebhook()"><i data-lucide="link-2-off"></i>Remove Webhook</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toasts -->
+<div id="toasts"></div>
+
+<script>
+// ── Firebase ──────────────────────────────────────────────────────────
+const fbConfig={apiKey:"AIzaSyBnz1UbLyz0f6t83D2222XlmKNhKLdFzQM",authDomain:"digit-product.firebaseapp.com",databaseURL:"https://digit-product-default-rtdb.firebaseio.com",projectId:"digit-product"};
+firebase.initializeApp(fbConfig);
+const auth=firebase.auth(),db=firebase.database();
+
+// ── State ─────────────────────────────────────────────────────────────
+let U=null,bots={},envRows=[],consoleBotId=null,consoleListener=null,envBotId=null,webhookBotId=null;
+let logCounts={log:0,warn:0,error:0};
+
+// ── Auth ──────────────────────────────────────────────────────────────
+auth.onAuthStateChanged(u=>{
+  if(!u){location.href='./';return;}
+  U=u;
+  el('headerSub').textContent=u.displayName||u.email;
+  applyTheme(localStorage.getItem('dropify_theme')==='dark');
+  lucide.createIcons();
+  loadBots();
+});
+
+// ── Theme ─────────────────────────────────────────────────────────────
+function applyTheme(dark){
+  document.documentElement.setAttribute('data-theme',dark?'dark':'light');
+  const ti=el('themeIcon');if(ti)ti.setAttribute('data-lucide',dark?'moon':'sun');
+  lucide.createIcons();
+  localStorage.setItem('dropify_theme',dark?'dark':'light');
+}
+function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-theme')!=='dark');}
+
+// ── Load Bots ─────────────────────────────────────────────────────────
+async function loadBots(){
+  el('loadingState').classList.remove('hidden');
+  el('botSection').classList.add('hidden');
+  const snap=await db.ref(`bots/${U.uid}`).get();
+  bots=snap.exists()?snap.val():{};
+  el('loadingState').classList.add('hidden');
+  el('botSection').classList.remove('hidden');
+  renderBots();
+}
+
+const COLORS=['#2AABEE','#4f46e5','#16a34a','#d97706','#7c3aed','#dc2626','#0891b2'];
+function botColor(name){return COLORS[(name||'').charCodeAt(0)%COLORS.length];}
+
+function renderBots(){
+  const grid=el('botGrid');
+  const keys=Object.keys(bots).sort((a,b)=>bots[b].createdAt-bots[a].createdAt);
+  el('botCount').textContent=`Your Bots (${keys.length})`;
+  if(!keys.length){
+    grid.innerHTML=`<div class="empty" style="grid-column:1/-1">
+      <div class="empty-icon"><i data-lucide="send"></i></div>
+      <div class="empty-title">No bots deployed yet</div>
+      <div class="empty-sub">Deploy your first Telegram bot. It runs on Dropify's serverless backend with webhook support.</div>
+      <button class="btn btn-tg btn-lg" onclick="openCreateModal()"><i data-lucide="plus"></i>Deploy First Bot</button>
+    </div>`;
+    lucide.createIcons();return;
+  }
+  grid.innerHTML=keys.map((id,i)=>botCard(id,i)).join('');
+  lucide.createIcons();
+}
+
+function botCard(id,i){
+  const b=bots[id];
+  const color=botColor(b.name);
+  const isRunning=b.status==='running';
+  const msgs=b.messageCount||0;
+  const errors=b.errorCount||0;
+  const webhookUrl=`${location.origin}/bot/${id}`;
+  return`<div class="bot-card" style="animation-delay:${i*.06}s">
+    <div class="bot-card-header">
+      <div class="bot-avatar" style="background:${color}">
+        <i data-lucide="send"></i>
+        <div class="status-ring ${isRunning?'running':'stopped'}"></div>
+      </div>
+      <div class="bot-info">
+        <div class="bot-name">${esc(b.name)}</div>
+        <div class="bot-username">${b.username?'@'+b.username:'Fetching info…'}</div>
+      </div>
+      <div>
+        <span class="badge ${isRunning?'badge-green':'badge-gray'}">${isRunning?'Running':'Stopped'}</span>
+      </div>
+    </div>
+    <div class="bot-card-body">
+      <div class="bot-stats">
+        <div class="bot-stat"><div class="bot-stat-val">${msgs}</div><div class="bot-stat-lbl">Messages</div></div>
+        <div class="bot-stat"><div class="bot-stat-val">${errors}</div><div class="bot-stat-lbl">Errors</div></div>
+        <div class="bot-stat"><div class="bot-stat-val">${fmtDate(b.createdAt)}</div><div class="bot-stat-lbl">Created</div></div>
+      </div>
+      <div class="bot-webhook">
+        <i data-lucide="link" style="width:12px;height:12px;color:var(--tg);flex-shrink:0"></i>
+        <div class="bot-webhook-url truncate">/bot/${id}</div>
+        <button onclick="copyText('${webhookUrl}')" title="Copy" style="background:none;border:none;cursor:pointer;color:var(--text-3);flex-shrink:0"><i data-lucide="copy" style="width:12px;height:12px"></i></button>
+      </div>
+      <div class="bot-card-actions">
+        ${isRunning
+          ?`<button class="btn btn-danger btn-sm" onclick="stopBot('${id}')"><i data-lucide="square"></i>Stop</button>`
+          :`<button class="btn btn-success btn-sm" onclick="startBot('${id}')"><i data-lucide="play"></i>Start</button>`}
+        <button class="btn btn-secondary btn-sm" onclick="openConsole('${id}')"><i data-lucide="terminal"></i>Console</button>
+        <button class="btn btn-secondary btn-sm" onclick="openEditBot('${id}')"><i data-lucide="pencil"></i>Edit</button>
+        <button class="btn btn-ghost btn-sm" title="Env Vars" onclick="openEnvModal('${id}')"><i data-lucide="key"></i></button>
+        <button class="btn btn-ghost btn-sm" title="Webhook" onclick="openWebhookModal('${id}')"><i data-lucide="link"></i></button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red)" title="Delete" onclick="deleteBot('${id}')"><i data-lucide="trash-2"></i></button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Create / Edit Bot ─────────────────────────────────────────────────
+function openCreateModal(){
+  el('editBotId').value='';
+  el('createModalTitle').textContent='Deploy New Bot';
+  el('deployBtnLabel').textContent='Deploy Bot';
+  el('botName').value='';el('botToken').value='';el('botDesc').value='';
+  el('botCode').value=defaultCode();
+  envRows=[];renderEnvRows();
+  el('zipPreview').classList.add('hidden');
+  switchTab('basic');
+  openModal('createModal');
+}
+
+function openEditBot(id){
+  const b=bots[id];
+  el('editBotId').value=id;
+  el('createModalTitle').textContent='Edit Bot';
+  el('deployBtnLabel').textContent='Save Changes';
+  el('botName').value=b.name||'';
+  el('botToken').value=b.token||'';
+  el('botDesc').value=b.description||'';
+  el('botCode').value=b.code||defaultCode();
+  envRows=Object.entries(b.envVars||{}).map(([k,v])=>({k,v}));
+  renderEnvRows();
+  switchTab('basic');
+  openModal('createModal');
+}
+
+function defaultCode(){
+  return `// Dropify Telegram Bot
+// Available: update, env, sendMessage, reply, sendPhoto, log, fetch, etc.
+
+const msg = update.message;
+if (!msg) return;
+
+const text = msg.text || '';
+const chatId = msg.chat.id;
+const name = msg.from?.first_name || 'User';
+
+log('Received:', text, 'from', name);
+
+if (text === '/start') {
+  await reply(\`Welcome \${name}! 🤖\\nI am your bot hosted on Dropify.\\n\\nType /help for commands.\`);
+
+} else if (text === '/help') {
+  await reply('Available commands:\\n/start - Start\\n/help - Help\\n/ping - Test');
+
+} else if (text === '/ping') {
+  await reply('Pong! 🏓 Bot is running.');
+
+} else {
+  await reply('I don\\'t understand that. Try /help');
+}`;
+}
+
+function loadTemplate(){
+  const templates={
+    basic: defaultCode(),
+    echo: `// Echo Bot - repeats everything the user sends
+const msg = update.message;
+if (!msg) return;
+const text = msg.text || '';
+const chatId = msg.chat.id;
+if (text.startsWith('/')) return;
+await sendMessage(chatId, '🔊 Echo: ' + text);`,
+    inline: `// Bot with Inline Keyboard
+const msg = update.message;
+const cb = update.callback_query;
+
+if (cb) {
+  await answerCallback(cb.id, 'You clicked: ' + cb.data);
+  await editMessage(cb.message.chat.id, cb.message.message_id, 'You chose: ' + cb.data);
+  return;
+}
+
+if (!msg) return;
+if (msg.text === '/start') {
+  await sendMessage(msg.chat.id, 'Choose an option:', {
+    reply_markup: {
+      inline_keyboard: [
+        [{text: '✅ Option A', callback_data: 'A'}, {text: '❌ Option B', callback_data: 'B'}],
+        [{text: '🔄 Refresh', callback_data: 'refresh'}]
+      ]
+    }
+  });
+}`,
+  };
+  const choice=prompt('Choose template: basic, echo, inline');
+  if(templates[choice]){el('botCode').value=templates[choice];toast('Template loaded','success');}
+}
+
+async function deployBot(){
+  const id=el('editBotId').value;
+  const name=el('botName').value.trim();
+  const token=el('botToken').value.trim();
+  const code=el('botCode').value.trim();
+  const desc=el('botDesc').value.trim();
+  if(!name)return toast('Bot name is required','error');
+  if(!token)return toast('Bot token is required','error');
+  if(!code)return toast('Bot code is required — go to the Code tab','error');
+
+  const btn=el('deployBtn');btn.disabled=true;
+  el('deployBtnLabel').textContent=id?'Saving…':'Deploying…';
+
+  // Get env vars
+  const envVars={};
+  envRows.forEach(r=>{if(r.k&&r.v)envVars[r.k]=r.v;});
+
+  try{
+    let botId=id||db.ref().push().key;
+    const existing=id?bots[id]:{};
+
+    const data={
+      name, token, code, description:desc,
+      envVars, status:existing.status||'running',
+      createdAt:existing.createdAt||Date.now(),
+      updatedAt:Date.now(),
+      messageCount:existing.messageCount||0,
+      errorCount:existing.errorCount||0,
+      username:existing.username||null,
+      webhookSet:false,
+    };
+
+    await db.ref(`bots/${U.uid}/${botId}`).set(data);
+    // Index for webhook lookup
+    await db.ref(`botIndex/${botId}`).set({uid:U.uid});
+
+    bots[botId]=data;
+
+    // Set webhook
+    toast('Setting up webhook…','info');
+    const webhookResult=await setWebhook(botId,token);
+
+    if(webhookResult.ok){
+      await db.ref(`bots/${U.uid}/${botId}/webhookSet`).set(true);
+      bots[botId].webhookSet=true;
+      toast('Webhook configured!','success');
+    }
+
+    // Fetch bot info
+    fetchBotInfo(botId, token);
+
+    closeModal('createModal');
+    renderBots();
+    toast(`Bot "${name}" deployed! 🚀`,'success');
+  }catch(e){toast('Deploy failed: '+e.message,'error');}
+  finally{btn.disabled=false;el('deployBtnLabel').textContent=id?'Save Changes':'Deploy Bot';}
+}
+
+async function setWebhook(botId,token){
+  const url=`${location.origin}/bot/${botId}`;
+  try{
+    const r=await fetch(`https://api.telegram.org/bot${token}/setWebhook`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url,allowed_updates:['message','callback_query','inline_query','chosen_inline_result','channel_post','edited_message']})
+    });
+    return await r.json();
+  }catch(e){return{ok:false,description:e.message};}
+}
+
+async function fetchBotInfo(botId,token){
+  try{
+    const r=await fetch(`https://api.telegram.org/bot${token}/getMe`);
+    const d=await r.json();
+    if(d.ok){
+      const username=d.result.username;
+      await db.ref(`bots/${U.uid}/${botId}/username`).set(username);
+      if(bots[botId])bots[botId].username=username;
+      renderBots();
+    }
+  }catch(_){}
+}
+
+// ── Start / Stop Bot ──────────────────────────────────────────────────
+async function startBot(id){
+  const b=bots[id];
+  const result=await setWebhook(id,b.token);
+  if(result.ok){
+    await db.ref(`bots/${U.uid}/${id}`).update({status:'running',webhookSet:true});
+    bots[id].status='running';bots[id].webhookSet=true;
+    addLog(id,'system','Bot started — webhook active','system');
+    renderBots();toast('Bot started!','success');
+  }else{
+    toast('Failed to start: '+(result.description||'Unknown error'),'error');
+  }
+}
+
+async function stopBot(id){
+  if(!confirm('Stop this bot? It will stop receiving messages.'))return;
+  const b=bots[id];
+  try{
+    await fetch(`https://api.telegram.org/bot${b.token}/deleteWebhook`,{method:'POST'});
+  }catch(_){}
+  await db.ref(`bots/${U.uid}/${id}`).update({status:'stopped',webhookSet:false});
+  bots[id].status='stopped';bots[id].webhookSet=false;
+  addLog(id,'system','Bot stopped — webhook removed','system');
+  renderBots();toast('Bot stopped','success');
+}
+
+async function deleteBot(id){
+  if(!confirm('Delete this bot permanently?'))return;
+  if(!confirm('This removes all logs and code. Sure?'))return;
+  const b=bots[id];
+  try{await fetch(`https://api.telegram.org/bot${b.token}/deleteWebhook`,{method:'POST'});}catch(_){}
+  await db.ref(`bots/${U.uid}/${id}`).remove();
+  await db.ref(`botIndex/${id}`).remove();
+  await db.ref(`botLogs/${id}`).remove();
+  delete bots[id];
+  renderBots();toast('Bot deleted','success');
+}
+
+// ── Console ───────────────────────────────────────────────────────────
+function openConsole(id){
+  consoleBotId=id;
+  const b=bots[id];
+  el('consoleBotName').textContent=b.name;
+  logCounts={log:0,warn:0,error:0};
+  el('consoleBody').innerHTML='<div class="console-empty">No logs yet. Send a message to your bot!</div>';
+  updateLogStats();
+  openModal('consoleModal');
+  // Real-time listener
+  if(consoleListener)consoleListener();
+  consoleListener=db.ref(`botLogs/${id}`).limitToLast(200).on('value',snap=>{
+    if(!snap.exists()){el('consoleBody').innerHTML='<div class="console-empty">No logs yet. Send a message to your bot!</div>';return;}
+    const logs=[];snap.forEach(c=>logs.push(c.val()));
+    renderConsoleLogs(logs);
+  });
+}
+
+function closeConsole(){
+  if(consoleListener){db.ref(`botLogs/${consoleBotId}`).off('value',consoleListener);consoleListener=null;}
+  closeModal('consoleModal');
+}
+
+function renderConsoleLogs(logs){
+  logCounts={log:0,warn:0,error:0};
+  el('consoleBody').innerHTML=logs.map(l=>{
+    if(l.level==='log')logCounts.log++;
+    else if(l.level==='warn')logCounts.warn++;
+    else if(l.level==='error')logCounts.error++;
+    const icons={log:'›',warn:'⚠',error:'✖',info:'ℹ',system:'·'};
+    const time=l.ts?new Date(l.ts).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'';
+    return`<div class="clog ${l.level||'log'}"><span class="clog-time">${time}</span><span class="clog-prefix">${icons[l.level]||'›'}</span>${esc(String(l.msg||''))}</div>`;
+  }).join('');
+  el('consoleBody').scrollTop=el('consoleBody').scrollHeight;
+  el('consoleLogCount').textContent=logs.length+' logs';
+  updateLogStats();
+}
+
+function updateLogStats(){
+  el('cs-log').textContent=logCounts.log+' logs';
+  el('cs-warn').textContent=logCounts.warn+' warns';
+  el('cs-error').textContent=logCounts.error+' errors';
+}
+
+async function clearConsoleLogs(){
+  if(!consoleBotId)return;
+  if(!confirm('Clear all logs?'))return;
+  await db.ref(`botLogs/${consoleBotId}`).remove();
+  toast('Logs cleared','success');
+}
+
+function exportLogs(){
+  if(!consoleBotId)return;
+  db.ref(`botLogs/${consoleBotId}`).get().then(snap=>{
+    if(!snap.exists())return toast('No logs to export','warn');
+    const logs=[];snap.forEach(c=>logs.push(c.val()));
+    const txt=logs.map(l=>`[${new Date(l.ts).toISOString()}] [${l.level}] ${l.msg}`).join('\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
+    a.download=`${consoleBotId}-logs.txt`;a.click();
+    toast('Logs exported','success');
+  });
+}
+
+async function addLog(botId,level,msg,type){
+  const logRef=db.ref(`botLogs/${botId}`).push();
+  await logRef.set({level:type||level,msg,ts:Date.now()});
+  // Keep only last 500 logs (cleanup)
+  const snap=await db.ref(`botLogs/${botId}`).get();
+  if(snap.exists()&&snap.numChildren()>500){
+    const keys=[];snap.forEach(c=>keys.push(c.key));
+    for(let i=0;i<keys.length-500;i++){
+      await db.ref(`botLogs/${botId}/${keys[i]}`).remove();
+    }
+  }
+}
+
+// ── Env Vars (inline in create modal) ────────────────────────────────
+function addEnvRow(){envRows.push({k:'',v:''});renderEnvRows();}
+function renderEnvRows(){
+  el('envRows').innerHTML=envRows.length?envRows.map((r,i)=>`
+    <div class="env-row">
+      <input class="input env-key" placeholder="KEY" value="${esc(r.k)}" oninput="envRows[${i}].k=this.value">
+      <input class="input env-val" placeholder="value" value="${esc(r.v)}" oninput="envRows[${i}].v=this.value">
+      <button class="env-del" onclick="removeEnvRow(${i})"><i data-lucide="x"></i></button>
+    </div>`).join(''):'<div style="color:var(--text-3);font-size:13px;padding:10px 0">No variables yet. Click "Add Variable".</div>';
+  lucide.createIcons();
+}
+function removeEnvRow(i){envRows.splice(i,1);renderEnvRows();}
+
+// ── Env Modal (for existing bot) ──────────────────────────────────────
+let envModalRows=[];
+function openEnvModal(id){
+  envBotId=id;
+  const b=bots[id];
+  el('envBotName').textContent=b.name;
+  envModalRows=Object.entries(b.envVars||{}).map(([k,v])=>({k,v}));
+  renderEnvModalRows();
+  openModal('envModal');
+}
+function addEnvRowModal(){envModalRows.push({k:'',v:''});renderEnvModalRows();}
+function renderEnvModalRows(){
+  el('envRowsModal').innerHTML=envModalRows.length?envModalRows.map((r,i)=>`
+    <div class="env-row">
+      <input class="input env-key" placeholder="KEY" value="${esc(r.k)}" oninput="envModalRows[${i}].k=this.value">
+      <input class="input env-val" placeholder="value" value="${esc(r.v)}" oninput="envModalRows[${i}].v=this.value">
+      <button class="env-del" onclick="removeEnvModalRow(${i})"><i data-lucide="x"></i></button>
+    </div>`).join(''):'<div style="color:var(--text-3);font-size:13px;padding:10px 0">No variables.</div>';
+  lucide.createIcons();
+}
+function removeEnvModalRow(i){envModalRows.splice(i,1);renderEnvModalRows();}
+async function saveEnvVars(){
+  const envVars={};
+  envModalRows.forEach(r=>{if(r.k&&r.v)envVars[r.k]=r.v;});
+  await db.ref(`bots/${U.uid}/${envBotId}/envVars`).set(envVars);
+  bots[envBotId].envVars=envVars;
+  closeModal('envModal');
+  toast('Env vars saved!','success');
+}
+
+// ── Webhook Modal ─────────────────────────────────────────────────────
+function openWebhookModal(id){
+  webhookBotId=id;
+  const b=bots[id];
+  const url=`${location.origin}/bot/${id}`;
+  el('webhookUrl').textContent=url;
+  el('webhookStatusBox').textContent='Loading…';
+  openModal('webhookModal');
+  checkWebhookStatus(b.token,url);
+}
+async function checkWebhookStatus(token,url){
+  try{
+    const r=await fetch(`https://api.telegram.org/bot${token}/getWebhookInfo`);
+    const d=await r.json();
+    if(d.ok){
+      const info=d.result;
+      const box=el('webhookStatusBox');
+      box.innerHTML=`<div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+        <div><strong>URL:</strong> <span style="font-family:var(--mono);color:${info.url?'var(--tg)':'var(--text-3)'}">${info.url||'Not set'}</span></div>
+        <div><strong>Pending updates:</strong> ${info.pending_update_count||0}</div>
+        <div><strong>Last error:</strong> ${info.last_error_message||'None'}</div>
+        <div><strong>Max connections:</strong> ${info.max_connections||40}</div>
+      </div>`;
+    }
+  }catch(e){el('webhookStatusBox').textContent='Could not fetch: '+e.message;}
+}
+function copyWebhook(){copyText(`${location.origin}/bot/${webhookBotId}`);}
+async function setWebhookNow(){
+  const b=bots[webhookBotId];
+  const r=await setWebhook(webhookBotId,b.token);
+  if(r.ok){toast('Webhook set!','success');await db.ref(`bots/${U.uid}/${webhookBotId}/webhookSet`).set(true);}
+  else toast('Failed: '+(r.description||'error'),'error');
+}
+async function deleteWebhook(){
+  const b=bots[webhookBotId];
+  try{await fetch(`https://api.telegram.org/bot${b.token}/deleteWebhook`,{method:'POST'});}catch(e){}
+  await db.ref(`bots/${U.uid}/${webhookBotId}`).update({status:'stopped',webhookSet:false});
+  bots[webhookBotId].status='stopped';bots[webhookBotId].webhookSet=false;
+  renderBots();closeModal('webhookModal');
+  toast('Webhook removed — bot stopped','success');
+}
+
+// ── ZIP Upload ────────────────────────────────────────────────────────
+function onDrag(e,id,add){e.preventDefault();document.getElementById(id).classList.toggle('drag',add);}
+function onZipDrop(e){e.preventDefault();el('zipDropzone').classList.remove('drag');const f=e.dataTransfer.files[0];if(f&&f.name.endsWith('.zip'))processZip(f);else toast('Please drop a .zip file','error');}
+function handleZipUpload(e){if(e.target.files[0])processZip(e.target.files[0]);}
+
+async function processZip(file){
+  toast('Extracting ZIP…','info');
+  try{
+    const zip=await JSZip.loadAsync(file);
+    const files={};
+    for(const[path,entry]of Object.entries(zip.files)){
+      if(!entry.dir)files[path]=await entry.async('string').catch(()=>'[Binary]');
+    }
+    // Find main bot file
+    const mainFile=files['bot.js']||files['index.js']||files['main.js'];
+    if(mainFile){el('botCode').value=mainFile;toast('Bot code loaded from ZIP','success');}
+    else toast('No bot.js/index.js found in ZIP','warn');
+    // Parse .env
+    if(files['.env']){
+      const vars=parseDotEnv(files['.env']);
+      envRows=[...envRows,...Object.entries(vars).map(([k,v])=>({k,v}))];
+      renderEnvRows();
+      toast(`${Object.keys(vars).length} env vars imported from .env`,'success');
+      switchTab('env');
+    }
+    // Show preview
+    el('zipPreview').classList.remove('hidden');
+    el('zipFileList').innerHTML=Object.keys(files).map(f=>`<div>📄 ${esc(f)} <span style="color:#555">(${fmtBytes(files[f].length)})</span></div>`).join('');
+    if(mainFile)switchTab('code');
+  }catch(e){toast('ZIP error: '+e.message,'error');}
+}
+
+function parseDotEnv(content){
+  const vars={};
+  content.split('\n').forEach(line=>{
+    line=line.trim();
+    if(!line||line.startsWith('#'))return;
+    const eq=line.indexOf('=');
+    if(eq<1)return;
+    const k=line.slice(0,eq).trim();
+    let v=line.slice(eq+1).trim();
+    if((v.startsWith('"')&&v.endsWith('"'))||(v.startsWith("'")&&v.endsWith("'")))v=v.slice(1,-1);
+    if(k)vars[k]=v;
+  });
+  return vars;
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='tab-'+name));
+}
+
+// ── Modal helpers ─────────────────────────────────────────────────────
+function openModal(id){document.getElementById(id)?.classList.add('open');lucide.createIcons();}
+function closeModal(id){document.getElementById(id)?.classList.remove('open');}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
+});
+
+// ── Toast ─────────────────────────────────────────────────────────────
+const TICONS={success:'check-circle',error:'x-circle',info:'info',warn:'alert-triangle'};
+function toast(msg,type='info'){
+  const c=el('toasts');
+  const t=document.createElement('div');t.className=`toast ${type}`;
+  t.innerHTML=`<div class="toast-icon"><i data-lucide="${TICONS[type]}"></i></div><div class="toast-msg">${esc(msg)}</div>`;
+  t.onclick=()=>t.remove();
+  c.appendChild(t);lucide.createIcons();
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(110%)';t.style.transition='all .3s';setTimeout(()=>t.remove(),300);},3500);
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────
+function el(id){return document.getElementById(id);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function copyText(t){navigator.clipboard.writeText(t).then(()=>toast('Copied!','success'));}
+function fmtDate(ts){if(!ts)return'–';return new Date(ts).toLocaleDateString('en-IN',{day:'numeric',month:'short'});}
+function fmtBytes(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(1)+'MB';}
+function formatCode(){
+  const ta=el('botCode');
+  // Simple: normalize indentation
+  ta.value=ta.value.split('\n').map(l=>l.trimEnd()).join('\n').replace(/\n{3,}/g,'\n\n');
+  toast('Code formatted','info');
+}
+</script>
+</body>
+</html>
