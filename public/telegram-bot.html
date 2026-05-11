@@ -347,8 +347,12 @@ textarea.input{height:auto;padding:10px 12px;resize:vertical;line-height:1.6;min
         <div class="code-box">
           <div class="code-bar">
             <div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div>
-            <span class="code-file">bot.js</span>
-            <div style="margin-left:auto;display:flex;gap:6px">
+            <span class="code-file" id="codeFileName">bot.js</span>
+            <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+              <div style="display:flex;background:var(--bg-2);border-radius:6px;padding:2px;gap:2px">
+                <button id="langJs" onclick="setLang('js')" style="padding:2px 10px;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;background:var(--accent);color:var(--accent-fg)">JS</button>
+                <button id="langPy" onclick="setLang('python')" style="padding:2px 10px;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;background:transparent;color:var(--text-2)">Python</button>
+              </div>
               <button class="btn btn-ghost btn-sm" onclick="formatCode()" style="font-size:10px">Format</button>
             </div>
           </div>
@@ -654,6 +658,7 @@ function openCreateModal(){
   el('deployBtnLabel').textContent='Deploy Bot';
   el('botName').value='';el('botToken').value='';el('botDesc').value='';
   el('botCode').value=defaultCode();
+  setLang('js');
   envRows=[];renderEnvRows();
   el('zipPreview').classList.add('hidden');
   switchTab('basic');
@@ -669,10 +674,22 @@ function openEditBot(id){
   el('botToken').value=b.token||'';
   el('botDesc').value=b.description||'';
   el('botCode').value=b.code||defaultCode();
+  setLang(b.language||'js');
   envRows=Object.entries(b.envVars||{}).map(([k,v])=>({k,v}));
   renderEnvRows();
   switchTab('basic');
   openModal('createModal');
+}
+
+let currentLang = 'js';
+function setLang(lang){
+  currentLang = lang;
+  const isJs = lang === 'js';
+  el('langJs').style.background = isJs ? 'var(--accent)' : 'transparent';
+  el('langJs').style.color      = isJs ? 'var(--accent-fg)' : 'var(--text-2)';
+  el('langPy').style.background = !isJs ? 'var(--accent)' : 'transparent';
+  el('langPy').style.color      = !isJs ? 'var(--accent-fg)' : 'var(--text-2)';
+  el('codeFileName').textContent = isJs ? 'bot.js' : 'bot.py';
 }
 
 function defaultCode(){
@@ -761,6 +778,7 @@ async function deployBot(){
 
     const data={
       name, token, code, description:desc,
+      language: currentLang,
       envVars, status:existing.status||'running',
       createdAt:existing.createdAt||Date.now(),
       updatedAt:Date.now(),
