@@ -48,6 +48,34 @@ button{cursor:pointer;border:none;background:none}
   --shadow-lg:0 12px 32px rgba(0,0,0,.4);--shadow-xl:0 24px 48px rgba(0,0,0,.5);
 }
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── File Manager ───────────────────────────────────── */
+.fm-wrap{display:flex;border:1.5px solid var(--border);border-radius:var(--r-md);overflow:hidden;background:var(--bg-card);min-height:420px}
+.fm-sidebar{width:180px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg-2)}
+.fm-sidebar-head{padding:8px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.fm-sidebar-title{font-size:10px;font-weight:700;color:var(--text-3);letter-spacing:.5px;text-transform:uppercase}
+.fm-add-btn{width:20px;height:20px;border-radius:4px;background:var(--accent);color:var(--accent-fg);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;font-size:14px;line-height:1}
+.fm-file-list{flex:1;overflow-y:auto;padding:4px}
+.fm-file{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;color:var(--text-2);transition:all .15s;position:relative}
+.fm-file:hover{background:var(--bg-3);color:var(--text)}
+.fm-file.active{background:var(--tg-lt);color:var(--tg);font-weight:600}
+.fm-file-icon{font-size:13px;flex-shrink:0}
+.fm-file-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm-file-entry{width:14px;height:14px;flex-shrink:0;color:var(--amber)}
+.fm-del-btn{opacity:0;width:16px;height:16px;background:none;border:none;color:var(--red);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:3px;transition:opacity .15s}
+.fm-file:hover .fm-del-btn{opacity:1}
+.fm-editor{flex:1;display:flex;flex-direction:column;min-width:0}
+.fm-editor-head{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--border);background:var(--bg-2)}
+.fm-editor-file{font-size:12px;font-weight:600;color:var(--text);font-family:var(--mono)}
+.fm-editor-entry{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--amber-lt);color:var(--amber);font-weight:700;cursor:pointer;border:none;transition:all .15s}
+.fm-editor-entry:hover{background:var(--amber);color:#fff}
+.fm-code{flex:1;width:100%;background:var(--bg-card);border:none;color:var(--text);font-family:var(--mono);font-size:12.5px;line-height:1.7;padding:12px 14px;outline:none;resize:none;tab-size:2}
+.fm-new-file-row{padding:8px;border-top:1px solid var(--border)}
+.fm-ext-chips{display:flex;flex-wrap:wrap;gap:4px;padding:6px 10px;border-top:1px solid var(--border)}
+.fm-ext-chip{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:var(--bg-3);color:var(--text-2);cursor:pointer;border:none;transition:all .15s}
+.fm-ext-chip:hover{background:var(--tg-lt);color:var(--tg)}
+@media(max-width:600px){.fm-sidebar{width:140px}.fm-code{font-size:11.5px}}
+
 /* ── Premium Animations ─────────────────────────── */
 @keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -405,42 +433,58 @@ textarea.input{height:auto;padding:10px 12px;resize:vertical;line-height:1.6;min
 
       <!-- Tab: Code -->
       <div class="tab-panel" id="tab-code">
-        <div style="margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
-          <div style="font-size:12px;color:var(--text-2)">Write your bot logic. The <code style="background:var(--bg-2);padding:1px 5px;border-radius:4px;font-family:var(--mono)">update</code> object contains the Telegram update.</div>
-          <button class="btn btn-secondary btn-sm" onclick="loadTemplate()"><i data-lucide="layout-template"></i>Load Template</button>
+        <!-- Toolbar -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <div style="font-size:12px;color:var(--text-2);flex:1">File Manager — Add any file, set entry point ⚡</div>
+          <div style="display:flex;background:var(--bg-2);border-radius:6px;padding:2px;gap:2px">
+            <button id="langJs" onclick="setLang('js')" style="padding:2px 10px;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;background:var(--accent);color:var(--accent-fg)">JS</button>
+            <button id="langPy" onclick="setLang('python')" style="padding:2px 10px;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;background:transparent;color:var(--text-2)">Python</button>
+          </div>
+          <select id="templateSelect" onchange="loadTemplate()" style="background:var(--bg-2);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:11px;color:var(--text);cursor:pointer">
+            <option value="">📋 Templates</option>
+            <option value="basic">🤖 Basic Bot</option>
+            <option value="echo">🔁 Echo Bot</option>
+            <option value="inline">⌨️ Inline Keyboard</option>
+            <option value="group">👥 Group Manager</option>
+            <option value="ai">🧠 AI Chatbot</option>
+          </select>
         </div>
-        <div class="code-box">
-          <div class="code-bar">
-            <div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div>
-            <span class="code-file" id="codeFileName">bot.js</span>
-            <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
-              <div style="display:flex;background:var(--bg-2);border-radius:6px;padding:2px;gap:2px">
-                <button id="langJs" onclick="setLang('js')" style="padding:2px 10px;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;background:var(--accent);color:var(--accent-fg)">JS</button>
-                <button id="langPy" onclick="setLang('python')" style="padding:2px 10px;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;background:transparent;color:var(--text-2)">Python</button>
-              </div>
-              <button class="btn btn-ghost btn-sm" onclick="formatCode()" style="font-size:10px">Format</button>
+        <!-- File Manager Split View -->
+        <div class="fm-wrap">
+          <!-- Sidebar: File Tree -->
+          <div class="fm-sidebar">
+            <div class="fm-sidebar-head">
+              <span class="fm-sidebar-title">Files</span>
+              <button class="fm-add-btn" onclick="showAddFilePrompt()" title="Add new file">+</button>
+            </div>
+            <div class="fm-file-list" id="fmFileList"></div>
+            <!-- Quick add chips -->
+            <div class="fm-ext-chips" id="fmExtChips">
+              <button class="fm-ext-chip" onclick="quickAddFile('requirements.txt')">req.txt</button>
+              <button class="fm-ext-chip" onclick="quickAddFile('vercel.json')">vercel.json</button>
+              <button class="fm-ext-chip" onclick="quickAddFile('config.json')">config.json</button>
+              <button class="fm-ext-chip" onclick="quickAddFile('utils.py')">utils.py</button>
+              <button class="fm-ext-chip" onclick="quickAddFile('helpers.js')">helpers.js</button>
+              <button class="fm-ext-chip" onclick="quickAddFile('.env.example')">.env</button>
             </div>
           </div>
-          <textarea class="code-area" id="botCode" style="min-height:340px" placeholder="// Your bot code here
-// Available: update, env, sendMessage, reply, sendPhoto, log, etc.
-
-const msg = update.message;
-if (!msg) return;
-
-const text = msg.text || '';
-const chatId = msg.chat.id;
-const name = msg.from?.first_name || 'User';
-
-if (text === '/start') {
-  await reply(`Welcome ${name}! 🤖\n\nI am your custom Telegram bot hosted on Dropify.`);
-} else if (text === '/help') {
-  await reply('Available commands:\n/start - Start the bot\n/help - Show this message\n/echo - Echo your message');
-} else if (text.startsWith('/echo ')) {
-  const echoText = text.slice(6);
-  await reply(echoText);
-} else {
-  await reply('Unknown command. Try /help');
-}"></textarea>
+          <!-- Editor Area -->
+          <div class="fm-editor">
+            <div class="fm-editor-head">
+              <div class="code-dots" style="margin-right:4px"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div>
+              <span class="fm-editor-file" id="fmCurrentFile">No file selected</span>
+              <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+                <button class="fm-editor-entry" id="fmEntryBtn" onclick="setEntryFile()" title="Set as entry point">⚡ Set Entry</button>
+                <button class="btn btn-ghost btn-sm" onclick="formatCode()" style="font-size:10px;padding:3px 7px">Format</button>
+              </div>
+            </div>
+            <textarea class="fm-code" id="botCode" placeholder="// Select a file from the left or add a new one..." onchange="fmSaveCurrentFile()" oninput="fmSaveCurrentFile()"></textarea>
+          </div>
+        </div>
+        <!-- Entry point info -->
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-3)">
+          <span>⚡ Entry:</span><code id="fmEntryDisplay" style="background:var(--bg-2);padding:1px 6px;border-radius:4px;color:var(--amber);font-family:var(--mono)">not set</code>
+          <span style="margin-left:4px">· Click ⚡ Set Entry on the active file to set it as main entry point</span>
         </div>
         <div style="margin-top:10px;background:var(--bg-2);border-radius:var(--r-sm);padding:10px 12px">
           <div style="font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px;letter-spacing:.5px">AVAILABLE FUNCTIONS</div>
@@ -764,8 +808,8 @@ function openCreateModal(){
   el('createModalTitle').textContent='Deploy New Bot';
   el('deployBtnLabel').textContent='Deploy Bot';
   el('botName').value='';el('botToken').value='';el('botDesc').value='';
-  el('botCode').value=defaultCode();
   setLang('js');
+  fmInit('js');
   envRows=[];renderEnvRows();
   el('zipPreview').classList.add('hidden');
   switchTab('basic');
@@ -780,8 +824,8 @@ function openEditBot(id){
   el('botName').value=b.name||'';
   el('botToken').value=b.token||'';
   el('botDesc').value=b.description||'';
-  el('botCode').value=b.code||defaultCode();
   setLang(b.language||'js');
+  fmLoad(b);
   envRows=Object.entries(b.envVars||{}).map(([k,v])=>({k,v}));
   renderEnvRows();
   switchTab('basic');
@@ -796,7 +840,6 @@ function setLang(lang){
   el('langJs').style.color      = isJs ? 'var(--accent-fg)' : 'var(--text-2)';
   el('langPy').style.background = !isJs ? 'var(--accent)' : 'transparent';
   el('langPy').style.color      = !isJs ? 'var(--accent-fg)' : 'var(--text-2)';
-  el('codeFileName').textContent = isJs ? 'bot.js' : 'bot.py';
 }
 
 function defaultCode(){
@@ -892,6 +935,7 @@ async function deployBot(){
     const data={
       name, token, code, description:desc,
       language: currentLang,
+      files, entryFile,
       envVars, status:existing.status||'running',
       createdAt:existing.createdAt||Date.now(),
       updatedAt:Date.now(),
@@ -1308,6 +1352,202 @@ async function duplicateBot(id){
   bots[newId]=copy;
   renderBots();
   toast('Bot duplicated!','success');
+}
+
+
+// ════════════════════════════════════════════════════════════════════════
+// FILE MANAGER
+// ════════════════════════════════════════════════════════════════════════
+
+// fmFiles = { 'main__dot__js': 'code...', 'requirements__dot__txt': '...' }
+// fmEntry = 'main__dot__js'  (encoded key)
+let fmFiles = {};
+let fmEntry = null;
+let fmActive = null; // currently open file key
+
+const FILE_ICONS = {
+  js:'🟨', ts:'🔷', py:'🐍', json:'📋', txt:'📄',
+  html:'🌐', css:'🎨', md:'📝', env:'🔑', example:'📄',
+  sh:'⚙️', yml:'⚙️', yaml:'⚙️', toml:'🔩', xml:'📋',
+  default:'📄'
+};
+
+function encodeFileName(name){
+  return name.replace(/\./g,'__dot__').replace(/#/g,'__hash__').replace(/\$/g,'__dollar__')
+             .replace(/\//g,'__slash__').replace(/\[/g,'__lb__').replace(/\]/g,'__rb__');
+}
+function decodeFileName(key){
+  return key.replace(/__dot__/g,'.').replace(/__hash__/g,'#').replace(/__dollar__/g,'$')
+            .replace(/__slash__/g,'/').replace(/__lb__/g,'[').replace(/__rb__/g,']');
+}
+function fileIcon(name){
+  const ext=(name.split('.').pop()||'').toLowerCase();
+  return FILE_ICONS[ext]||FILE_ICONS.default;
+}
+function fileDefaultContent(name){
+  const ext=(name.split('.').pop()||'').toLowerCase();
+  const n=name.toLowerCase();
+  if(n==='requirements.txt')return '# Python packages (one per line)\n# Example:\nrequests\n';
+  if(n==='vercel.json')return '{\n  "rewrites": [\n    { "source": "/bot/:botId", "destination": "/api/tg/:botId" }\n  ]\n}\n';
+  if(n==='config.json')return '{\n  "version": "1.0.0"\n}\n';
+  if(ext==='js')return '// '+name+'\n\n';
+  if(ext==='py')return '# '+name+'\n\n';
+  if(ext==='json')return '{\n  \n}\n';
+  if(ext==='md')return '# Bot\n\n';
+  return '';
+}
+
+// Init file manager for new bot
+function fmInit(lang){
+  fmFiles={};fmActive=null;
+  const entryName = lang==='python' ? 'main.py' : 'index.js';
+  const key=encodeFileName(entryName);
+  fmFiles[key] = lang==='python' ? defaultPythonCode() : defaultCode();
+  fmEntry=key;
+  fmRender();
+  fmOpenFile(key);
+}
+
+// Init file manager from existing bot
+function fmLoad(bot){
+  fmFiles = bot.files ? {...bot.files} : {};
+  fmEntry = bot.entryFile || null;
+  // Backward compat: if no files but has code, migrate
+  if(!Object.keys(fmFiles).length && bot.code){
+    const lang=bot.language||'js';
+    const entryName=lang==='python'?'main.py':'index.js';
+    const key=encodeFileName(entryName);
+    fmFiles[key]=bot.code;
+    fmEntry=key;
+  }
+  fmRender();
+  if(fmEntry && fmFiles[fmEntry]) fmOpenFile(fmEntry);
+  else if(Object.keys(fmFiles).length) fmOpenFile(Object.keys(fmFiles)[0]);
+}
+
+function fmRender(){
+  const list=el('fmFileList');if(!list)return;
+  const keys=Object.keys(fmFiles).sort((a,b)=>{
+    // Sort: entry first, then alphabetical
+    if(a===fmEntry)return -1;if(b===fmEntry)return 1;
+    return decodeFileName(a).localeCompare(decodeFileName(b));
+  });
+  list.innerHTML=keys.map(key=>{
+    const name=decodeFileName(key);
+    const icon=fileIcon(name);
+    const isEntry=key===fmEntry;
+    const isActive=key===fmActive;
+    return`<div class="fm-file ${isActive?'active':''}" onclick="fmOpenFile('${key}')" id="fm-${key}">
+      <span class="fm-file-icon">${icon}</span>
+      <span class="fm-file-name" title="${esc(name)}">${esc(name)}</span>
+      ${isEntry?'<span class="fm-file-entry" title="Entry point">⚡</span>':''}
+      <button class="fm-del-btn" onclick="event.stopPropagation();fmDeleteFile('${key}')" title="Delete"><i data-lucide="x" style="width:10px;height:10px"></i></button>
+    </div>`;
+  }).join('');
+  // Update entry display
+  const ed=el('fmEntryDisplay');
+  if(ed)ed.textContent=fmEntry?decodeFileName(fmEntry):'not set';
+  lucide.createIcons();
+}
+
+function fmOpenFile(key){
+  // Save current file first
+  fmSaveCurrentFile();
+  fmActive=key;
+  const name=decodeFileName(key);
+  if(el('fmCurrentFile'))el('fmCurrentFile').textContent=name;
+  if(el('botCode'))el('botCode').value=fmFiles[key]||'';
+  // Update entry btn
+  const eb=el('fmEntryBtn');
+  if(eb){
+    const isEntry=key===fmEntry;
+    eb.style.background=isEntry?'var(--amber)':'';
+    eb.style.color=isEntry?'#fff':'';
+    eb.textContent=isEntry?'⚡ Entry':'⚡ Set Entry';
+  }
+  // Highlight active
+  document.querySelectorAll('.fm-file').forEach(f=>f.classList.remove('active'));
+  const node=document.getElementById('fm-'+key);
+  if(node)node.classList.add('active');
+}
+
+function fmSaveCurrentFile(){
+  if(!fmActive)return;
+  const val=el('botCode')?.value;
+  if(val!==undefined)fmFiles[fmActive]=val;
+}
+
+function setEntryFile(){
+  if(!fmActive){toast('Open a file first','warn');return;}
+  fmEntry=fmActive;
+  fmRender();
+  fmOpenFile(fmActive);
+  toast('Entry point set to '+decodeFileName(fmActive),'success');
+}
+
+function showAddFilePrompt(){
+  const name=prompt('Enter file name (e.g. utils.py, config.json, requirements.txt):','');
+  if(!name||!name.trim())return;
+  const trimmed=name.trim();
+  fmAddFile(trimmed);
+}
+
+function quickAddFile(name){
+  fmAddFile(name);
+}
+
+function fmAddFile(name){
+  const key=encodeFileName(name);
+  if(fmFiles[key]!==undefined){
+    fmOpenFile(key);
+    toast('File already exists — opened it','info');
+    return;
+  }
+  fmFiles[key]=fileDefaultContent(name);
+  // Auto-set entry if first file
+  if(!fmEntry)fmEntry=key;
+  fmRender();
+  fmOpenFile(key);
+  toast('Added: '+name,'success');
+}
+
+function fmDeleteFile(key){
+  const name=decodeFileName(key);
+  if(!confirm('Delete "'+name+'"?'))return;
+  delete fmFiles[key];
+  if(fmEntry===key)fmEntry=Object.keys(fmFiles)[0]||null;
+  if(fmActive===key)fmActive=null;
+  fmRender();
+  // Open first remaining file
+  const remaining=Object.keys(fmFiles);
+  if(remaining.length){fmOpenFile(remaining[0]);}
+  else{el('botCode').value='';el('fmCurrentFile').textContent='No file selected';}
+  toast('Deleted: '+name,'info');
+}
+
+function fmGetData(){
+  fmSaveCurrentFile();
+  return {files:fmFiles, entryFile:fmEntry};
+}
+
+function defaultPythonCode(){
+  return `# main.py — Dropify Telegram Bot
+# Available: update, env, reply, send_message, send_photo, log
+
+msg = update.get("message")
+if not msg or not msg.get("text"): exit()
+
+text = msg["text"]
+name = msg.get("from", {}).get("first_name", "User")
+log("Received:", text, "from", name)
+
+if text == "/start":
+    reply(f"Welcome {name}! 🤖\nHosted on Dropify.")
+elif text == "/ping":
+    reply("Pong! 🏓")
+else:
+    reply("Unknown command. Try /start")
+`;
 }
 
 </script>
