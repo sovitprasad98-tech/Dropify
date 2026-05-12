@@ -48,6 +48,71 @@ button{cursor:pointer;border:none;background:none}
   --shadow-lg:0 12px 32px rgba(0,0,0,.4);--shadow-xl:0 24px 48px rgba(0,0,0,.5);
 }
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+/* ── Premium Animations ─────────────────────────── */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulse2{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes countUp{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+@keyframes glow{0%,100%{box-shadow:0 0 4px rgba(42,171,238,.4)}50%{box-shadow:0 0 12px rgba(42,171,238,.8)}}
+
+.bot-card{animation:fadeInUp .4s ease both;transition:transform .2s,box-shadow .2s}
+.bot-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)!important}
+.status-ring.running{animation:pulse2 2s infinite,glow 2s infinite}
+.btn{transition:all .15s ease}
+.btn:active{transform:scale(.96)}
+.bot-stat-val{animation:countUp .5s ease both}
+.modal-box{animation:fadeInUp .3s ease}
+.clog{animation:fadeIn .2s ease both}
+.toast{animation:slideDown .25s ease}
+
+/* ── Stats Overview Bar ─────────────────────────── */
+.overview-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.ov-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;display:flex;flex-direction:column;gap:4px;transition:transform .2s,box-shadow .2s;cursor:default}
+.ov-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.ov-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:6px}
+.ov-val{font-size:22px;font-weight:800;color:var(--text);letter-spacing:-1px}
+.ov-lbl{font-size:11px;color:var(--text-3);font-weight:500}
+
+/* ── Search bar ─────────────────────────────────── */
+.search-bar{display:flex;gap:8px;margin-bottom:14px;align-items:center}
+.search-input{flex:1;background:var(--bg-2);border:1.5px solid var(--border);border-radius:var(--r-md);padding:8px 12px;font-size:13px;color:var(--text);transition:border .15s}
+.search-input:focus{border-color:var(--tg);background:var(--bg-card)}
+.filter-btn{padding:7px 12px;border-radius:var(--r-md);font-size:12px;font-weight:600;background:var(--bg-2);color:var(--text-2);border:1.5px solid var(--border);transition:all .15s}
+.filter-btn.active{background:var(--tg);color:#fff;border-color:var(--tg)}
+
+/* ── Enhanced Bot Card ──────────────────────────── */
+.bot-lang-badge{padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;font-family:var(--mono)}
+.bot-msg-bar{height:3px;border-radius:2px;background:var(--bg-3);margin:8px 0;overflow:hidden}
+.bot-msg-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--tg),#7c3aed);transition:width .8s ease}
+
+/* ── Console Enhancements ───────────────────────── */
+.console-filter-tabs{display:flex;gap:4px;padding:8px 12px;border-bottom:1px solid var(--border2);background:var(--bg-2)}
+.cft{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;border:none;background:transparent}
+.cft.active{background:var(--bg-card);box-shadow:var(--shadow-sm)}
+.cft.log.active{color:var(--tg)}
+.cft.warn.active{color:var(--amber)}
+.cft.error.active{color:var(--red)}
+.console-send{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border2);background:var(--bg-2)}
+.console-send input{flex:1;background:var(--bg-3);border:1.5px solid var(--border);border-radius:8px;padding:7px 11px;font-size:12px;color:var(--text)}
+.console-send input:focus{border-color:var(--tg)}
+
+/* ── Template Cards ─────────────────────────────── */
+.template-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:8px}
+.tmpl-card{background:var(--bg-2);border:1.5px solid var(--border);border-radius:var(--r-md);padding:12px;cursor:pointer;transition:all .15s;text-align:center}
+.tmpl-card:hover{border-color:var(--tg);background:var(--tg-lt);transform:scale(1.02)}
+.tmpl-icon{font-size:22px;margin-bottom:6px}
+.tmpl-name{font-size:12px;font-weight:700;color:var(--text)}
+.tmpl-desc{font-size:10px;color:var(--text-3);margin-top:2px}
+
+/* ── Mobile ─────────────────────────────────────── */
+@media(max-width:600px){
+  .overview-bar{grid-template-columns:repeat(2,1fr)}
+  .bot-card-actions{flex-wrap:wrap}
+  .console-send{flex-direction:column}
+}
+
 @keyframes scaleIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -588,17 +653,48 @@ async function loadBots(){
 const COLORS=['#2AABEE','#4f46e5','#16a34a','#d97706','#7c3aed','#dc2626','#0891b2'];
 function botColor(name){return COLORS[(name||'').charCodeAt(0)%COLORS.length];}
 
+let botFilter='all';
+
+function setFilter(f){
+  botFilter=f;
+  ['all','running','stopped'].forEach(x=>{
+    const b=el('fb-'+x);if(b){b.classList.toggle('active',x===f);}
+  });
+  renderBots();
+}
+
+function filterBots(){renderBots();}
+
 function renderBots(){
   const grid=el('botGrid');
-  const keys=Object.keys(bots).sort((a,b)=>bots[b].createdAt-bots[a].createdAt);
+  const q=(el('botSearch')?.value||'').toLowerCase();
+  let keys=Object.keys(bots).sort((a,b)=>bots[b].createdAt-bots[a].createdAt);
+  if(botFilter==='running')keys=keys.filter(id=>bots[id].status==='running');
+  if(botFilter==='stopped')keys=keys.filter(id=>bots[id].status!=='running');
+  if(q)keys=keys.filter(id=>bots[id].name?.toLowerCase().includes(q)||bots[id].username?.toLowerCase().includes(q));
+
+  // Update overview
+  const all=Object.values(bots);
+  const running=all.filter(b=>b.status==='running').length;
+  const totalMsgs=all.reduce((s,b)=>s+(b.messageCount||0),0);
+  const totalErrs=all.reduce((s,b)=>s+(b.errorCount||0),0);
+  if(el('ov-total'))el('ov-total').textContent=all.length;
+  if(el('ov-running'))el('ov-running').textContent=running;
+  if(el('ov-msgs'))el('ov-msgs').textContent=totalMsgs>=1000?(totalMsgs/1000).toFixed(1)+'k':totalMsgs;
+  if(el('ov-errors'))el('ov-errors').textContent=totalErrs;
+
   el('botCount').textContent=`Your Bots (${keys.length})`;
-  if(!keys.length){
+  if(!Object.keys(bots).length){
     grid.innerHTML=`<div class="empty" style="grid-column:1/-1">
       <div class="empty-icon"><i data-lucide="send"></i></div>
       <div class="empty-title">No bots deployed yet</div>
       <div class="empty-sub">Deploy your first Telegram bot. It runs on Dropify's serverless backend with webhook support.</div>
       <button class="btn btn-tg btn-lg" onclick="openCreateModal()"><i data-lucide="plus"></i>Deploy First Bot</button>
     </div>`;
+    lucide.createIcons();return;
+  }
+  if(!keys.length){
+    grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-title">No bots match "${esc(q||botFilter)}"</div></div>`;
     lucide.createIcons();return;
   }
   grid.innerHTML=keys.map((id,i)=>botCard(id,i)).join('');
@@ -611,8 +707,12 @@ function botCard(id,i){
   const isRunning=b.status==='running';
   const msgs=b.messageCount||0;
   const errors=b.errorCount||0;
+  const lang=(b.language||'js').toUpperCase();
+  const langColor=lang==='PYTHON'?'#3b82f6':'#f59e0b';
+  const maxMsgs=Math.max(...Object.values(bots).map(x=>x.messageCount||0),1);
+  const barWidth=Math.round((msgs/maxMsgs)*100);
   const webhookUrl=`${location.origin}/bot/${id}`;
-  return`<div class="bot-card" style="animation-delay:${i*.06}s">
+  return`<div class="bot-card" style="animation-delay:${i*.06}s" id="bc-${id}">
     <div class="bot-card-header">
       <div class="bot-avatar" style="background:${color}">
         <i data-lucide="send"></i>
@@ -620,23 +720,29 @@ function botCard(id,i){
       </div>
       <div class="bot-info">
         <div class="bot-name">${esc(b.name)}</div>
-        <div class="bot-username">${b.username?'@'+b.username:'Fetching info…'}</div>
+        <div class="bot-username" style="display:flex;align-items:center;gap:5px">
+          ${b.username?'@'+b.username:'No username yet'}
+          <span class="bot-lang-badge" style="background:${langColor}22;color:${langColor}">${lang}</span>
+        </div>
       </div>
-      <div>
-        <span class="badge ${isRunning?'badge-green':'badge-gray'}">${isRunning?'Running':'Stopped'}</span>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <span class="badge ${isRunning?'badge-green':'badge-gray'}">${isRunning?'● Running':'■ Stopped'}</span>
+        <span style="font-size:10px;color:var(--text-3)">${fmtDate(b.createdAt)}</span>
       </div>
     </div>
     <div class="bot-card-body">
       <div class="bot-stats">
-        <div class="bot-stat"><div class="bot-stat-val">${msgs}</div><div class="bot-stat-lbl">Messages</div></div>
-        <div class="bot-stat"><div class="bot-stat-val">${errors}</div><div class="bot-stat-lbl">Errors</div></div>
-        <div class="bot-stat"><div class="bot-stat-val">${fmtDate(b.createdAt)}</div><div class="bot-stat-lbl">Created</div></div>
+        <div class="bot-stat"><div class="bot-stat-val">${msgs>=1000?(msgs/1000).toFixed(1)+'k':msgs}</div><div class="bot-stat-lbl">Messages</div></div>
+        <div class="bot-stat"><div class="bot-stat-val" style="${errors>0?'color:var(--red)':''}">${errors}</div><div class="bot-stat-lbl">Errors</div></div>
+        <div class="bot-stat"><div class="bot-stat-val">${b.envVars?Object.keys(b.envVars).length:0}</div><div class="bot-stat-lbl">Env Vars</div></div>
       </div>
+      <div class="bot-msg-bar"><div class="bot-msg-bar-fill" style="width:${barWidth}%"></div></div>
       <div class="bot-webhook">
         <i data-lucide="link" style="width:12px;height:12px;color:var(--tg);flex-shrink:0"></i>
         <div class="bot-webhook-url truncate">/bot/${id}</div>
-        <button onclick="copyText('${webhookUrl}')" title="Copy" style="background:none;border:none;cursor:pointer;color:var(--text-3);flex-shrink:0"><i data-lucide="copy" style="width:12px;height:12px"></i></button>
+        <button onclick="copyText('${webhookUrl}')" title="Copy webhook URL" style="background:none;border:none;cursor:pointer;color:var(--text-3);flex-shrink:0"><i data-lucide="copy" style="width:12px;height:12px"></i></button>
       </div>
+      ${b.description?`<div style="font-size:11px;color:var(--text-3);padding:4px 0;border-top:1px solid var(--border)">${esc(b.description)}</div>`:''}
       <div class="bot-card-actions">
         ${isRunning
           ?`<button class="btn btn-danger btn-sm" onclick="stopBot('${id}')"><i data-lucide="square"></i>Stop</button>`
@@ -644,7 +750,8 @@ function botCard(id,i){
         <button class="btn btn-secondary btn-sm" onclick="openConsole('${id}')"><i data-lucide="terminal"></i>Console</button>
         <button class="btn btn-secondary btn-sm" onclick="openEditBot('${id}')"><i data-lucide="pencil"></i>Edit</button>
         <button class="btn btn-ghost btn-sm" title="Env Vars" onclick="openEnvModal('${id}')"><i data-lucide="key"></i></button>
-        <button class="btn btn-ghost btn-sm" title="Webhook" onclick="openWebhookModal('${id}')"><i data-lucide="link"></i></button>
+        <button class="btn btn-ghost btn-sm" title="Webhook Info" onclick="openWebhookModal('${id}')"><i data-lucide="link"></i></button>
+        <button class="btn btn-ghost btn-sm" title="Duplicate Bot" onclick="duplicateBot('${id}')"><i data-lucide="copy-plus"></i></button>
         <button class="btn btn-ghost btn-sm" style="color:var(--red)" title="Delete" onclick="deleteBot('${id}')"><i data-lucide="trash-2"></i></button>
       </div>
     </div>
@@ -720,6 +827,12 @@ if (text === '/start') {
 }
 
 function loadTemplate(){
+  const tname=el('templateSelect')?.value||'basic';
+  el('botCode').value=getTemplate(tname);
+  toast('Template loaded','success');
+}
+
+function getTemplate(name){
   const templates={
     basic: defaultCode(),
     echo: `// Echo Bot - repeats everything the user sends
@@ -1120,6 +1233,83 @@ function formatCode(){
   ta.value=ta.value.split('\n').map(l=>l.trimEnd()).join('\n').replace(/\n{3,}/g,'\n\n');
   toast('Code formatted','info');
 }
+
+// ── Log Filter ────────────────────────────────────────────────────────
+let logFilter='all';
+let allLogs=[];
+
+function setLogFilter(f){
+  logFilter=f;
+  ['all','log','warn','error'].forEach(x=>{
+    const b=el('cft-'+x);if(b)b.classList.toggle('active',x===f);
+  });
+  renderFilteredLogs();
+}
+
+function renderFilteredLogs(){
+  const filtered=logFilter==='all'?allLogs:allLogs.filter(l=>l.level===logFilter);
+  const icons={log:'›',warn:'⚠',error:'✖',info:'ℹ',system:'·'};
+  if(!filtered.length){
+    el('consoleBody').innerHTML=`<div class="console-empty">No ${logFilter==='all'?'':''+logFilter+' '}logs yet.</div>`;
+    return;
+  }
+  el('consoleBody').innerHTML=filtered.map(l=>{
+    const time=l.ts?new Date(l.ts).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'';
+    return`<div class="clog ${l.level||'log'}"><span class="clog-time">${time}</span><span class="clog-prefix">${icons[l.level]||'›'}</span>${esc(String(l.msg||''))}</div>`;
+  }).join('');
+  el('consoleBody').scrollTop=el('consoleBody').scrollHeight;
+}
+
+function refreshLogs(){
+  if(!consoleBotId)return;
+  db.ref(`botLogs/${consoleBotId}`).limitToLast(200).get().then(snap=>{
+    if(!snap.exists()){allLogs=[];renderFilteredLogs();return;}
+    allLogs=[];snap.forEach(c=>allLogs.push(c.val()));
+    renderFilteredLogs();updateLogStats2();
+    toast('Logs refreshed','success');
+  });
+}
+
+function updateLogStats2(){
+  const counts={log:0,warn:0,error:0};
+  allLogs.forEach(l=>{if(counts[l.level]!==undefined)counts[l.level]++;});
+  el('cs-log').textContent=counts.log+' logs';
+  el('cs-warn').textContent=counts.warn+' warns';
+  el('cs-error').textContent=counts.error+' errors';
+  el('consoleLogCount').textContent=allLogs.length+' total';
+}
+
+// ── Send Test Message ─────────────────────────────────────────────────
+async function sendTestMsg(){
+  const input=el('consoleSendInput');
+  const text=input?.value?.trim();
+  if(!text||!consoleBotId)return;
+  const bot=bots[consoleBotId];
+  if(!bot)return;
+  try{
+    const res=await fetch(`https://api.telegram.org/bot${bot.token}/sendMessage`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:bot.testChatId||text,text:text})
+    });
+    const d=await res.json();
+    if(d.ok){toast('Message sent!','success');input.value='';}
+    else toast('Need chat_id in Env Vars as TEST_CHAT_ID','warn',4000);
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+// ── Duplicate Bot ─────────────────────────────────────────────────────
+async function duplicateBot(id){
+  const b=bots[id];if(!b)return;
+  if(!confirm(`Duplicate "${b.name}"?`))return;
+  const newId=db.ref(`bots/${currentUser.uid}`).push().key;
+  const copy={...b,name:b.name+' (Copy)',status:'stopped',createdAt:Date.now(),messageCount:0,errorCount:0};
+  await db.ref(`bots/${currentUser.uid}/${newId}`).set(copy);
+  await db.ref(`botIndex/${newId}`).set({uid:currentUser.uid});
+  bots[newId]=copy;
+  renderBots();
+  toast('Bot duplicated!','success');
+}
+
 </script>
 </body>
 </html>
