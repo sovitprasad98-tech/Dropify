@@ -4,11 +4,11 @@
     { "source": "/u/:slug",      "destination": "/api/index" },
     { "source": "/p/:slug/(.*)", "destination": "/api/index" },
     { "source": "/p/:slug",      "destination": "/api/index" },
-    { "source": "/bot/:botId",   "destination": "/api/tg/:botId" }
+    { "source": "/bot/:botId",   "destination": "/api/tg/:botId" },
+    { "source": "/py/:slug",     "destination": "/api/py/:slug" }
   ],
   "functions": {
-    "api/tg/[botId].js": {
-      "maxDuration": 10
-    }
+    "api/tg/[botId].js": { "maxDuration": 10 },
+    "api/py/[slug].js":  { "maxDuration": 15 }
   }
 }
