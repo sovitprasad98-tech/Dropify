@@ -8,7 +8,6 @@
     { "source": "/py/:slug",     "destination": "/api/py/:slug" }
   ],
   "functions": {
-    "api/tg/[botId].js": { "maxDuration": 10 },
-    "api/py/[slug].js":  { "maxDuration": 15 }
+    "api/tg/[botId].js": { "maxDuration": 10 }
   }
 }
