@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<title>Dropify — Bot Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden;font-family:'Instrument Sans',sans-serif;-webkit-font-smoothing:antialiased;touch-action:none}
+button,input,textarea,select{font-family:inherit;outline:none}
+button{cursor:pointer;border:none;background:none}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+:root{
+  --bg:#0d1117;--bg-card:#161b22;--bg-2:#21262d;--bg-3:#30363d;--bg-4:#3d4450;
+  --border:#30363d;--border2:#3d4450;
+  --text:#e6edf3;--text-2:#8b949e;--text-3:#6e7681;
+  --accent:#58a6ff;--accent-fg:#0d1117;
+  --green:#3fb950;--green-lt:#1a3a1f;
+  --red:#f85149;--red-lt:#3a1a1a;
+  --amber:#d29922;--amber-lt:#3a2a0a;
+  --blue:#58a6ff;--blue-lt:#1a2a3a;
+  --purple:#bc8cff;--purple-lt:#2a1a3a;
+  --tg:#2aabee;--tg-lt:#0d2233;
+  --mono:'JetBrains Mono',monospace;
+  --sidebar-w:260px;
+  --config-w:300px;
+  --header-h:48px;
+  --tab-h:36px;
+}
+[data-theme="light"]{
+  --bg:#f6f8fa;--bg-card:#ffffff;--bg-2:#f6f8fa;--bg-3:#eaeef2;--bg-4:#d0d7de;
+  --border:#d0d7de;--border2:#afb8c1;
+  --text:#1f2328;--text-2:#636c76;--text-3:#9198a1;
+  --accent:#0969da;
+  --green:#1a7f37;--green-lt:#dafbe1;
+  --red:#d1242f;--red-lt:#ffebe9;
+  --amber:#9a6700;--amber-lt:#fff8c5;
+  --blue:#0969da;--blue-lt:#ddf4ff;
+  --tg:#0088cc;--tg-lt:#e6f3ff;
+}
+
+/* ── Layout ─────────────────────────────────────── */
+body{background:var(--bg);color:var(--text)}
+
+.ide-wrap{display:flex;flex-direction:column;position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden}
+
+/* Header */
+.ide-header{height:var(--header-h);background:var(--bg-card);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0;flex-shrink:0;z-index:999;width:100%}
+.ide-header-logo{display:flex;align-items:center;gap:8px;padding:0 16px;border-right:1px solid var(--border);height:100%;min-width:var(--sidebar-w)}
+.ide-logo-text{font-size:13px;font-weight:700;color:var(--text)}
+.ide-logo-badge{font-size:10px;padding:1px 6px;border-radius:4px;background:var(--tg-lt);color:var(--tg);font-weight:700;border:1px solid var(--tg)}
+.ide-header-main{flex:1;display:flex;align-items:center;gap:8px;padding:0 14px;height:100%;min-width:0}
+.ide-bot-name-input{background:transparent;border:1px solid transparent;border-radius:6px;padding:4px 8px;font-size:13px;font-weight:600;color:var(--text);min-width:0;flex:0 0 auto;max-width:220px;transition:all .15s}
+.ide-bot-name-input:hover{border-color:var(--border)}
+.ide-bot-name-input:focus{border-color:var(--accent);background:var(--bg-2)}
+.ide-breadcrumb{font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:4px}
+.ide-header-actions{display:flex;align-items:center;gap:6px;padding:0 12px;border-left:1px solid var(--border);height:100%}
+
+/* Body */
+.ide-body{flex:1;display:flex;overflow:hidden}
+
+/* Sidebar */
+.ide-sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg-card);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.ide-sidebar-head{padding:8px 8px 4px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
+.ide-sidebar-title{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.8px;padding-left:4px}
+.ide-sidebar-actions{display:flex;gap:2px}
+.sba{width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;color:var(--text-2);transition:all .12s}
+.sba:hover{background:var(--bg-3);color:var(--text)}
+.sba svg{width:14px;height:14px}
+
+/* File tree */
+.file-tree{flex:1;overflow-y:auto;padding:4px 0;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+.ft-item{display:flex;align-items:center;gap:0;padding:0;position:relative;user-select:none}
+.ft-item:hover>.ft-row{background:var(--bg-2)}
+.ft-item.active>.ft-row{background:var(--bg-3)}
+.ft-row{display:flex;align-items:center;gap:5px;padding:4px 8px;width:100%;border-radius:0;cursor:pointer;transition:background .1s;min-width:0;border:none;background:none;text-align:left;color:var(--text)}
+.ft-indent{width:12px;flex-shrink:0}
+.ft-chevron{width:16px;height:16px;flex-shrink:0;color:var(--text-3);transition:transform .15s}
+.ft-chevron.open{transform:rotate(90deg)}
+.ft-icon{font-size:13px;flex-shrink:0;width:16px;text-align:center}
+.ft-name{font-size:12.5px;font-weight:500;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ft-entry{font-size:9px;padding:0 4px;border-radius:3px;background:var(--amber-lt);color:var(--amber);font-weight:700;flex-shrink:0}
+.ft-children{display:none}
+.ft-children.open{display:block}
+.ft-item-actions{position:absolute;right:4px;display:none;gap:2px;background:var(--bg-3);border-radius:4px;padding:1px}
+.ft-item:hover .ft-item-actions{display:flex}
+.fta{width:18px;height:18px;border-radius:3px;display:flex;align-items:center;justify-content:center;color:var(--text-2);transition:all .1s}
+.fta:hover{background:var(--bg-4);color:var(--text)}
+.fta svg{width:11px;height:11px}
+
+/* Drop zone */
+.sidebar-drop{border:1.5px dashed var(--border);border-radius:8px;margin:8px;padding:16px 8px;text-align:center;cursor:pointer;transition:all .2s;font-size:11px;color:var(--text-3)}
+.sidebar-drop:hover,.sidebar-drop.drag-over{border-color:var(--tg);color:var(--tg);background:var(--tg-lt)}
+
+/* Center: Tabs + Editor */
+.ide-center{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.ide-tabs{height:var(--tab-h);background:var(--bg-card);border-bottom:1px solid var(--border);display:flex;align-items:flex-end;overflow-x:auto;flex-shrink:0}
+.ide-tabs::-webkit-scrollbar{height:0}
+.ide-tab{display:flex;align-items:center;gap:6px;padding:0 14px;height:calc(var(--tab-h) - 1px);border-right:1px solid var(--border);cursor:pointer;font-size:12px;color:var(--text-2);background:transparent;border-bottom:2px solid transparent;transition:all .12s;flex-shrink:0;max-width:160px;white-space:nowrap}
+.ide-tab:hover{color:var(--text);background:var(--bg-2)}
+.ide-tab.active{color:var(--text);border-bottom-color:var(--tg);background:var(--bg)}
+.ide-tab-icon{font-size:12px;flex-shrink:0}
+.ide-tab-name{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ide-tab-close{width:16px;height:16px;border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:0;transition:opacity .1s}
+.ide-tab:hover .ide-tab-close,.ide-tab.active .ide-tab-close{opacity:1}
+.ide-tab-close:hover{background:var(--bg-3)}
+.ide-tab-close svg{width:10px;height:10px}
+.ide-tab-welcome{padding:4px 14px;font-size:11px;color:var(--text-3);display:flex;align-items:center;gap:4px}
+
+/* Editor */
+.ide-editor-wrap{flex:1;display:flex;overflow:hidden;background:var(--bg);position:relative}
+.ide-editor-info{position:absolute;bottom:8px;right:14px;font-size:11px;color:var(--text-3);font-family:var(--mono);display:flex;gap:14px;z-index:10;pointer-events:none}
+.ide-linecol,.ide-lang-label,.ide-encoding{background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:1px 6px}
+.ide-line-nums{width:48px;flex-shrink:0;background:var(--bg-card);border-right:1px solid var(--border);overflow:hidden;padding:12px 0;font-family:var(--mono);font-size:12.5px;line-height:1.75;color:var(--text-3);text-align:right;padding-right:8px;user-select:none}
+.ide-textarea{flex:1;background:transparent;border:none;color:var(--text);font-family:var(--mono);font-size:12.5px;line-height:1.75;padding:12px 14px;resize:none;white-space:pre;overflow-wrap:normal;overflow-x:auto;overflow-y:auto;tab-size:2;-moz-tab-size:2;-webkit-overflow-scrolling:touch;touch-action:pan-y pan-x}
+.ide-textarea::selection{background:rgba(88,166,255,.2)}
+.ide-welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px;background:var(--bg)}
+.ide-welcome-icon{font-size:48px}
+.ide-welcome-title{font-size:20px;font-weight:700;color:var(--text)}
+.ide-welcome-sub{font-size:13px;color:var(--text-2);text-align:center;max-width:400px;line-height:1.6}
+.ide-welcome-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+
+/* Right config panel */
+.ide-config{width:var(--config-w);flex-shrink:0;background:var(--bg-card);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .2s}
+.ide-config.collapsed{width:0;overflow:hidden}
+.cfg-head{padding:12px 14px 8px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.cfg-title{font-size:12px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px}
+.cfg-body{flex:1;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+.cfg-section{margin-bottom:16px}
+.cfg-section-label{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.cfg-field{margin-bottom:10px}
+.cfg-label{font-size:11px;font-weight:600;color:var(--text-2);margin-bottom:4px;display:flex;align-items:center;gap:4px}
+.cfg-input{width:100%;background:var(--bg-2);border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--text);transition:border .15s}
+.cfg-input:focus{border-color:var(--tg)}
+.cfg-input[type=password]{letter-spacing:.1em}
+.cfg-select{width:100%;background:var(--bg-2);border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--text)}
+.cfg-textarea{width:100%;background:var(--bg-2);border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:11.5px;font-family:var(--mono);color:var(--text);resize:vertical;min-height:60px}
+.cfg-textarea:focus{border-color:var(--tg)}
+
+/* Env vars */
+.env-row{display:flex;gap:4px;margin-bottom:6px}
+.env-row input{flex:1;background:var(--bg-2);border:1px solid var(--border);border-radius:5px;padding:5px 7px;font-size:11px;color:var(--text);font-family:var(--mono)}
+.env-row input:focus{border-color:var(--tg)}
+.env-del{width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;color:var(--red);background:var(--red-lt);transition:all .12s;flex-shrink:0}
+.env-del:hover{background:var(--red)}
+.env-del svg{width:12px;height:12px}
+
+/* Status bar */
+.ide-statusbar{height:22px;background:var(--tg);display:flex;align-items:center;gap:0;font-size:11px;flex-shrink:0;width:100%;z-index:999}
+.sb-item{display:flex;align-items:center;gap:4px;padding:0 10px;color:rgba(255,255,255,.85);cursor:default;height:100%;transition:background .1s;border-right:1px solid rgba(255,255,255,.15)}
+.sb-item:hover{background:rgba(255,255,255,.1);color:#fff}
+.sb-item svg{width:12px;height:12px}
+.sb-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;transition:all .15s;border:1.5px solid transparent;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.btn svg{width:13px;height:13px}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--tg);color:#fff;border-color:var(--tg)}
+.btn-primary:hover{filter:brightness(1.1)}
+.btn-success{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-success:hover{filter:brightness(1.1)}
+.btn-secondary{background:var(--bg-2);color:var(--text);border-color:var(--border)}
+.btn-secondary:hover{background:var(--bg-3);border-color:var(--border2)}
+.btn-ghost{color:var(--text-2);padding:5px 8px}
+.btn-ghost:hover{background:var(--bg-2);color:var(--text)}
+.btn-danger{background:var(--red-lt);color:var(--red);border-color:var(--red)}
+.btn-sm{padding:4px 9px;font-size:11px}
+.btn-xs{padding:2px 6px;font-size:10px;gap:4px}
+.btn-icon{width:30px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:6px}
+.btn-icon svg{width:15px;height:15px}
+
+/* Context menu */
+.ctx-menu{position:fixed;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:9999;min-width:160px;display:none}
+.ctx-menu.show{display:block;animation:fadeIn .12s ease}
+.ctx-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:5px;font-size:12px;color:var(--text);cursor:pointer;transition:background .1s}
+.ctx-item:hover{background:var(--bg-3)}
+.ctx-item.danger{color:var(--red)}
+.ctx-item svg{width:13px;height:13px;color:var(--text-2)}
+.ctx-sep{height:1px;background:var(--border);margin:3px 0}
+
+/* Toast */
+.toast-wrap{position:fixed;top:60px;right:14px;z-index:99999;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:9px 14px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow-md);animation:slideDown .25s ease;min-width:200px;max-width:320px;pointer-events:all}
+.toast.success{border-left:3px solid var(--green)}
+.toast.error{border-left:3px solid var(--red)}
+.toast.info{border-left:3px solid var(--blue)}
+.toast.warn{border-left:3px solid var(--amber)}
+
+/* Upload progress */
+.upload-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:none;align-items:center;justify-content:center}
+.upload-overlay.show{display:flex}
+.upload-box{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:28px 32px;min-width:320px;text-align:center}
+.upload-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px}
+.upload-bar-track{height:6px;background:var(--bg-3);border-radius:4px;overflow:hidden;margin-bottom:8px}
+.upload-bar-fill{height:100%;background:linear-gradient(90deg,var(--tg),var(--purple));border-radius:4px;transition:width .3s}
+.upload-status{font-size:12px;color:var(--text-2)}
+
+/* Inline rename input */
+.ft-rename-input{background:var(--bg-3);border:1px solid var(--tg);border-radius:4px;padding:1px 6px;font-size:12.5px;color:var(--text);font-family:'Instrument Sans',sans-serif;width:140px}
+
+@keyframes fadeIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── MOBILE RESPONSIVE ──────────────────────────────────────── */
+@media(max-width:768px){
+
+  :root{
+    --sidebar-w:280px;
+    --config-w:100%;
+    --header-h:50px;
+  }
+
+  /* Sidebar: hidden overlay on mobile */
+  .ide-sidebar{
+    position:fixed;left:0;top:0;bottom:0;z-index:888;
+    transform:translateX(-100%);transition:transform .25s ease;
+    box-shadow:4px 0 20px rgba(0,0,0,.15);
+  }
+  .ide-sidebar.mobile-open{transform:translateX(0)}
+
+  /* Config panel: full width bottom sheet */
+  .ide-config{
+    position:fixed;left:0;right:0;bottom:0;z-index:888;
+    width:100%!important;height:80vh;
+    transform:translateY(100%);transition:transform .25s ease;
+    border-radius:20px 20px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.15);
+    border-left:none;border-top:1px solid var(--border);
+  }
+  .ide-config.mobile-open{transform:translateY(0)}
+  .ide-config.collapsed{width:100%!important;transform:translateY(100%)}
+
+  /* Overlay backdrop */
+  .mobile-overlay{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:887;
+  }
+  .mobile-overlay.show{display:block}
+
+  /* Header: simplified */
+  .ide-header-logo{min-width:auto;padding:0 10px;border-right:none}
+  .ide-logo-text,.ide-logo-badge{display:none}
+  .ide-header-main{padding:0 8px;gap:6px}
+  .ide-bot-name-input{max-width:130px;font-size:12px}
+  .ide-header-actions{padding:0 8px;gap:6px;border-left:none}
+  .ide-breadcrumb{font-size:11px}
+
+  /* Hide desktop-only elements */
+  .ide-header-logo svg{display:block}
+  .ide-statusbar .sb-item:not(:first-child):not(:last-child){display:none}
+
+  /* Editor tabs */
+  .ide-tabs{overflow-x:auto}
+
+  /* Editor full width */
+  .ide-center{width:100%}
+
+  /* Mobile bottom toolbar */
+  .mobile-toolbar{
+    display:flex!important;
+    position:fixed;bottom:0;left:0;right:0;z-index:500;
+    background:var(--bg-card);border-top:1px solid var(--border);
+    padding:8px 12px;gap:8px;align-items:center;
+    box-shadow:0 -2px 12px rgba(0,0,0,.08);
+  }
+  .mobile-toolbar .btn{flex:1;justify-content:center;font-size:12px;padding:8px 6px}
+  .ide-statusbar{display:none}
+
+  /* Config handle bar */
+  .cfg-handle{
+    display:block;width:40px;height:4px;background:var(--border2);
+    border-radius:2px;margin:10px auto 4px;
+  }
+}
+
+@media(min-width:769px){
+  .mobile-toolbar{display:none!important}
+  .mobile-overlay{display:none!important}
+  .cfg-handle{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="mobile-overlay" id="mobileOverlay" onclick="closeMobilePanels()"></div>
+<div class="ide-wrap">
+
+  <!-- ── Header ──────────────────────────────────────────────────────── -->
+  <div class="ide-header">
+    <div class="ide-header-logo">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="var(--tg)"/><path d="M5 10l3 3 7-7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="ide-logo-text">Dropify</span>
+      <span class="ide-logo-badge">BOT STUDIO</span>
+    </div>
+    <div class="ide-header-main">
+      <button class="btn btn-ghost btn-sm" onclick="goBack()" title="Back"><i data-lucide="arrow-left"></i></button>
+      <div class="ide-breadcrumb">
+        <span style="color:var(--text-2)">bots</span>
+        <i data-lucide="chevron-right" style="width:12px;height:12px;color:var(--text-3)"></i>
+        <input class="ide-bot-name-input" id="botNameInput" placeholder="bot-name" value="My Bot" title="Click to rename" />
+      </div>
+      <div style="flex:1"></div>
+
+      <!-- Language toggle -->
+      <div style="display:flex;background:var(--bg-3);border-radius:6px;padding:2px;gap:1px;margin-right:4px">
+        <button id="langJs" onclick="setLang('js')" style="padding:3px 10px;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;background:var(--tg);color:#fff;transition:all .15s">JS</button>
+        <button id="langPy" onclick="setLang('python')" style="padding:3px 10px;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;background:transparent;color:var(--text-2);transition:all .15s">Python</button>
+      </div>
+
+      <button class="btn btn-ghost btn-sm" onclick="toggleConfig()" title="Bot Config"><i data-lucide="settings-2"></i></button>
+    </div>
+    <div class="ide-header-actions">
+      <button class="btn btn-secondary btn-sm" onclick="triggerZipUpload()"><i data-lucide="package-open"></i>Upload ZIP</button>
+      <input type="file" id="zipInput" accept=".zip" style="display:none" onchange="handleZipUpload(this)">
+      <button class="btn btn-success btn-sm" onclick="deployBot()" id="deployBtn"><i data-lucide="rocket"></i>Deploy Bot</button>
+    </div>
+  </div>
+
+  <!-- ── Body ────────────────────────────────────────────────────────── -->
+  <div class="ide-body">
+
+    <!-- Sidebar -->
+    <div class="ide-sidebar" id="ideSidebar">
+      <div class="ide-sidebar-head">
+        <span class="ide-sidebar-title">Explorer</span>
+        <div class="ide-sidebar-actions">
+          <button class="sba" onclick="newFile()" title="New File"><i data-lucide="file-plus"></i></button>
+          <button class="sba" onclick="newFolder()" title="New Folder"><i data-lucide="folder-plus"></i></button>
+          <button class="sba" onclick="triggerZipUpload()" title="Upload ZIP"><i data-lucide="package-open"></i></button>
+          <button class="sba" onclick="collapseAll()" title="Collapse All"><i data-lucide="fold-vertical"></i></button>
+        </div>
+      </div>
+      <div class="file-tree" id="fileTree" oncontextmenu="showCtx(event,null,'root')"></div>
+      <div class="sidebar-drop" id="sidebarDrop" onclick="triggerZipUpload()"
+        ondragover="event.preventDefault();this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="handleFileDrop(event)">
+        <i data-lucide="upload-cloud" style="width:18px;height:18px;margin-bottom:4px"></i><br>
+        Drop ZIP / files here
+      </div>
+    </div>
+
+    <!-- Center Editor -->
+    <div class="ide-center">
+      <div class="ide-tabs" id="ideTabs">
+        <div class="ide-tab-welcome"><i data-lucide="keyboard" style="width:12px;height:12px"></i> Welcome to Bot Studio</div>
+      </div>
+      <div class="ide-editor-wrap" id="ideEditorWrap">
+        <!-- Welcome screen -->
+        <div class="ide-welcome" id="ideWelcome">
+          <div class="ide-welcome-icon">🤖</div>
+          <div class="ide-welcome-title">Bot Studio</div>
+          <div class="ide-welcome-sub">Create files in the explorer, upload a ZIP, or use a template to get started.</div>
+          <div class="ide-welcome-actions">
+            <button class="btn btn-primary" onclick="newFile()"><i data-lucide="file-plus"></i>New File</button>
+            <button class="btn btn-secondary" onclick="loadTemplate('basic')"><i data-lucide="layout-template"></i>Use Template</button>
+            <button class="btn btn-secondary" onclick="triggerZipUpload()"><i data-lucide="package-open"></i>Upload ZIP</button>
+          </div>
+        </div>
+        <!-- Editor (hidden until file opened) -->
+        <div id="ideEditor" style="display:none;flex:1;display:none;overflow:hidden;width:100%">
+          <div class="ide-line-nums" id="lineNums">1</div>
+          <textarea class="ide-textarea" id="codeArea" spellcheck="false"
+            oninput="onEditorInput()" onscroll="syncLineNums()" onkeydown="handleEditorKey(event)"></textarea>
+        </div>
+      </div>
+      <div class="ide-editor-info">
+        <span class="ide-linecol" id="lineColInfo">Ln 1, Col 1</span>
+        <span class="ide-lang-label" id="langLabel">—</span>
+        <span class="ide-encoding">UTF-8</span>
+      </div>
+    </div>
+
+    <!-- Right Config Panel -->
+    <div class="ide-config" id="ideConfig"><div class="cfg-handle"></div>
+      <div class="cfg-head">
+        <div class="cfg-title">Bot Config</div>
+        <button class="btn btn-ghost btn-xs" onclick="toggleConfig()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="cfg-body">
+        <div class="cfg-section">
+          <div class="cfg-section-label">Identity</div>
+          <div class="cfg-field">
+            <div class="cfg-label"><i data-lucide="bot" style="width:11px;height:11px"></i> Bot Name</div>
+            <input class="cfg-input" id="cfgBotName" placeholder="My Telegram Bot" oninput="el('botNameInput').value=this.value">
+          </div>
+          <div class="cfg-field">
+            <div class="cfg-label"><i data-lucide="key" style="width:11px;height:11px"></i> Bot Token <span style="color:var(--red)">*</span></div>
+            <input class="cfg-input" id="cfgToken" type="password" placeholder="1234567:AABBcc...">
+            <div style="margin-top:4px;display:flex;gap:4px">
+              <button class="btn btn-secondary btn-xs" onclick="toggleTokenVis()" id="tokenVisBtn"><i data-lucide="eye"></i>Show</button>
+              <button class="btn btn-secondary btn-xs" onclick="verifyToken()"><i data-lucide="check-circle"></i>Verify</button>
+            </div>
+          </div>
+          <div class="cfg-field">
+            <div class="cfg-label"><i data-lucide="type" style="width:11px;height:11px"></i> Description</div>
+            <textarea class="cfg-textarea" id="cfgDesc" placeholder="What does this bot do?" rows="2"></textarea>
+          </div>
+        </div>
+
+        <div class="cfg-section">
+          <div class="cfg-section-label">Runtime</div>
+          <div class="cfg-field">
+            <div class="cfg-label">⚡ Entry File</div>
+            <select class="cfg-select" id="cfgEntry">
+              <option value="">— Select entry point —</option>
+            </select>
+          </div>
+          <div class="cfg-field">
+            <div class="cfg-label">🌐 Language</div>
+            <select class="cfg-select" id="cfgLang" onchange="setLang(this.value)">
+              <option value="js">JavaScript (Node.js)</option>
+              <option value="python">Python 3</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="cfg-section">
+          <div class="cfg-section-label" style="display:flex;align-items:center;justify-content:space-between">
+            <span>Env Variables</span>
+            <button class="btn btn-ghost btn-xs" onclick="addEnvRow()" style="padding:0 4px"><i data-lucide="plus" style="width:11px;height:11px"></i></button>
+          </div>
+          <div id="envRows"></div>
+          <button class="btn btn-secondary btn-xs" style="width:100%;margin-top:4px" onclick="addEnvRow()"><i data-lucide="plus"></i>Add Variable</button>
+        </div>
+
+        <div class="cfg-section">
+          <div class="cfg-section-label">Files</div>
+          <div id="cfgFileSummary" style="font-size:11px;color:var(--text-2)">No files yet</div>
+        </div>
+
+        <div class="cfg-section">
+          <div class="cfg-section-label">Danger Zone</div>
+          <button class="btn btn-danger btn-xs" style="width:100%" onclick="clearAll()"><i data-lucide="trash-2"></i>Clear All Files</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="ide-statusbar" id="ideStatusbar">
+    <div class="sb-item" onclick="toggleConfig()"><i data-lucide="git-branch"></i> main</div>
+    <div class="sb-item" id="sbStatus"><span class="sb-dot" id="sbDot" style="background:#fff"></span><span id="sbStatusText">Not saved</span></div>
+    <div class="sb-item" id="sbFiles">0 files</div>
+    <div class="sb-item" id="sbEntry">No entry</div>
+    <div style="flex:1"></div>
+    <div class="sb-item" onclick="toggleTheme()" title="Toggle theme"><i data-lucide="sun" id="themeIcon"></i></div>
+    <div class="sb-item" id="sbUser"><i data-lucide="user"></i> <span id="sbUserName">Loading...</span></div>
+  </div>
+</div>
+
+<!-- Context Menu -->
+<div class="ctx-menu" id="ctxMenu">
+  <div class="ctx-item" id="ctx-newfile" onclick="ctxNewFile()"><i data-lucide="file-plus"></i> New File</div>
+  <div class="ctx-item" id="ctx-newfolder" onclick="ctxNewFolder()"><i data-lucide="folder-plus"></i> New Folder</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="ctx-rename" onclick="ctxRename()"><i data-lucide="pencil"></i> Rename</div>
+  <div class="ctx-item" id="ctx-duplicate" onclick="ctxDuplicate()"><i data-lucide="copy"></i> Duplicate</div>
+  <div class="ctx-item" id="ctx-entry" onclick="ctxSetEntry()"><i data-lucide="zap"></i> Set as Entry Point</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" id="ctx-delete" onclick="ctxDelete()"><i data-lucide="trash-2"></i> Delete</div>
+</div>
+
+<!-- Upload overlay -->
+<div class="upload-overlay" id="uploadOverlay">
+  <div class="upload-box">
+    <div class="upload-title">📦 Extracting ZIP...</div>
+    <div class="upload-bar-track"><div class="upload-bar-fill" id="uploadBar" style="width:0%"></div></div>
+    <div class="upload-status" id="uploadStatus">Preparing...</div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+<script>
+// ── Firebase ──────────────────────────────────────────────────────────
+const fbConfig={apiKey:"AIzaSyBLzocO-22pXwjNg7HFG75OQzaFjbfV_0k",authDomain:"watch-be6e0.firebaseapp.com",databaseURL:"https://watch-be6e0-default-rtdb.firebaseio.com",projectId:"watch-be6e0",storageBucket:"watch-be6e0.firebasestorage.app",messagingSenderId:"1044218513896",appId:"1:1044218513896:web:14db4db1291a4903dcbc5d"};
+firebase.initializeApp(fbConfig);
+const auth=firebase.auth();
+const db=firebase.database();
+
+// ── State ─────────────────────────────────────────────────────────────
+let user=null, editBotId=null, currentLang='js';
+// fileSystem: flat map of path → content  e.g. { 'src/main.py': '...', 'requirements.txt': '...' }
+let fileSystem={};
+// entryFile: path string e.g. 'main.py'
+let entryFile=null;
+// Open tabs: array of paths
+let openTabs=[];
+let activeTab=null;
+// Context menu target
+let ctxTarget=null; // { type:'file'|'folder'|'root', path:string|null }
+
+// ── Helpers ───────────────────────────────────────────────────────────
+const el=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function toast(msg,type='info',dur=3000){
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  const icons={success:'✓',error:'✕',info:'ℹ',warn:'⚠'};
+  t.innerHTML=`<span style="font-size:14px">${icons[type]||'•'}</span><span>${msg}</span>`;
+  el('toastWrap').appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateY(-6px)';t.style.transition='all .3s';setTimeout(()=>t.remove(),300);},dur);
+}
+
+function el2(tag,attrs={},children=[]){
+  const e=document.createElement(tag);
+  Object.entries(attrs).forEach(([k,v])=>{if(k==='class')e.className=v;else if(k==='style')e.style.cssText=v;else e.setAttribute(k,v);});
+  children.forEach(c=>e.appendChild(typeof c==='string'?document.createTextNode(c):c));
+  return e;
+}
+
+// ── File encoding ─────────────────────────────────────────────────────
+function encodeKey(p){return p.replace(/\./g,'__dot__').replace(/#/g,'__hash__').replace(/\$/g,'__dollar__').replace(/\//g,'__slash__').replace(/\[/g,'__lb__').replace(/\]/g,'__rb__');}
+function decodeKey(k){return k.replace(/__dot__/g,'.').replace(/__hash__/g,'#').replace(/__dollar__/g,'$').replace(/__slash__/g,'/').replace(/__lb__/g,'[').replace(/__rb__/g,']');}
+
+// ── File Icons ────────────────────────────────────────────────────────
+const ICONS={
+  js:'🟨',ts:'🔷',jsx:'⚛️',tsx:'⚛️',
+  py:'🐍',
+  json:'📋',jsonc:'📋',
+  html:'🌐',htm:'🌐',css:'🎨',scss:'🎨',
+  md:'📝',txt:'📄',
+  env:'🔑',example:'📄',
+  sh:'⚙️',bash:'⚙️',
+  yml:'⚙️',yaml:'⚙️',toml:'🔩',
+  xml:'📋',csv:'📊',
+  png:'🖼️',jpg:'🖼️',jpeg:'🖼️',svg:'🖼️',
+  zip:'📦',
+  requirements:'📦',
+};
+function getIcon(name){
+  const base=name.toLowerCase();
+  if(base==='requirements.txt'||base==='requirements')return'📦';
+  if(base==='vercel.json')return'▲';
+  if(base==='.env'||base.startsWith('.env'))return'🔑';
+  if(base==='dockerfile')return'🐳';
+  if(base==='readme.md')return'📖';
+  const ext=(base.split('.').pop()||'');
+  return ICONS[ext]||'📄';
+}
+
+function getLangLabel(path){
+  const ext=(path.split('.').pop()||'').toLowerCase();
+  const map={js:'JavaScript',ts:'TypeScript',py:'Python',json:'JSON',html:'HTML',css:'CSS',md:'Markdown',sh:'Shell',yml:'YAML',yaml:'YAML',txt:'Text',jsx:'JSX',tsx:'TSX',xml:'XML',csv:'CSV'};
+  return map[ext]||ext.toUpperCase()||'Plain Text';
+}
+
+// ── Theme ─────────────────────────────────────────────────────────────
+function toggleTheme(){
+  const t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  el('themeIcon').setAttribute('data-lucide',t==='dark'?'moon':'sun');
+  lucide.createIcons();
+}
+
+// ── File Tree Rendering ───────────────────────────────────────────────
+function buildTree(){
+  // Build nested structure from flat fileSystem
+  const tree={};
+  Object.keys(fileSystem).sort().forEach(path=>{
+    const parts=path.split('/');
+    let node=tree;
+    parts.forEach((p,i)=>{
+      if(i===parts.length-1){node[p]={type:'file',path};}
+      else{node[p]=node[p]||{type:'folder',children:{}};node=node[p].children;}
+    });
+  });
+  return tree;
+}
+
+function renderTree(){
+  const tree=buildTree();
+  el('fileTree').innerHTML='';
+  renderTreeNode(tree,'',el('fileTree'),0);
+  updateEntrySelect();
+  updateFileSummary();
+  lucide.createIcons();
+}
+
+// Track folder open state
+const folderState={};
+
+function renderTreeNode(node,basePath,container,depth){
+  const folders=Object.entries(node).filter(([,v])=>v.type==='folder').sort(([a],[b])=>a.localeCompare(b));
+  const files=Object.entries(node).filter(([,v])=>v.type==='file').sort(([a],[b])=>a.localeCompare(b));
+
+  [...folders,...files].forEach(([name,item])=>{
+    const fullPath=basePath?`${basePath}/${name}`:name;
+    const wrap=document.createElement('div');
+    wrap.className='ft-item'+(item.type==='file'&&activeTab===fullPath?' active':'');
+
+    if(item.type==='folder'){
+      const isOpen=folderState[fullPath]!==false; // default open
+      const row=document.createElement('button');
+      row.className='ft-row';
+      row.style.paddingLeft=(8+depth*14)+'px';
+      row.innerHTML=`<span class="ft-chevron ${isOpen?'open':''}"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></span><span class="ft-icon">${isOpen?'📂':'📁'}</span><span class="ft-name">${esc(name)}</span>`;
+      row.onclick=()=>{folderState[fullPath]=!isOpen;renderTree();};
+      row.oncontextmenu=(e)=>{e.preventDefault();showCtx(e,'folder',fullPath);};
+
+      const actions=document.createElement('div');
+      actions.className='ft-item-actions';
+      actions.innerHTML=`<button class="fta" title="New File" onclick="event.stopPropagation();newFileIn('${fullPath}')"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button><button class="fta" title="Delete" style="color:var(--red)" onclick="event.stopPropagation();deleteFolder('${fullPath}')"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>`;
+      wrap.appendChild(row);wrap.appendChild(actions);
+
+      const children=document.createElement('div');
+      children.className=`ft-children ${isOpen?'open':''}`;
+      if(isOpen) renderTreeNode(item.children,fullPath,children,depth+1);
+      wrap.appendChild(children);
+
+    } else {
+      const isEntry=item.path===entryFile;
+      const row=document.createElement('button');
+      row.className='ft-row';
+      row.style.paddingLeft=(8+depth*14+16)+'px';
+      row.innerHTML=`<span class="ft-icon">${getIcon(name)}</span><span class="ft-name">${esc(name)}</span>${isEntry?'<span class="ft-entry">⚡</span>':''}`;
+      row.onclick=()=>openFile(item.path);
+      row.oncontextmenu=(e)=>{e.preventDefault();showCtx(e,'file',item.path);};
+
+      const actions=document.createElement('div');
+      actions.className='ft-item-actions';
+      actions.innerHTML=`<button class="fta" title="Rename" onclick="event.stopPropagation();renameFile('${item.path}')"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="fta" title="Delete" style="color:var(--red)" onclick="event.stopPropagation();deleteFile('${item.path}')"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>`;
+      wrap.appendChild(row);wrap.appendChild(actions);
+    }
+    container.appendChild(wrap);
+  });
+}
+
+// ── Tab Management ────────────────────────────────────────────────────
+function openFile(path){
+  saveActiveFile();
+  if(!openTabs.includes(path)) openTabs.push(path);
+  activeTab=path;
+  renderTabs();
+  loadFileToEditor(path);
+  renderTree();
+}
+
+function closeTab(path){
+  if(activeTab===path) saveActiveFile();
+  openTabs=openTabs.filter(t=>t!==path);
+  if(activeTab===path){
+    activeTab=openTabs[openTabs.length-1]||null;
+    if(activeTab) loadFileToEditor(activeTab);
+    else showWelcome();
+  }
+  renderTabs();
+  renderTree();
+}
+
+function renderTabs(){
+  const tabs=el('ideTabs');
+  if(!openTabs.length){tabs.innerHTML='<div class="ide-tab-welcome"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Welcome</div>';return;}
+  tabs.innerHTML=openTabs.map(p=>{
+    const name=p.split('/').pop();
+    return`<div class="ide-tab ${p===activeTab?'active':''}" onclick="openFile('${p}')">
+      <span class="ide-tab-icon">${getIcon(name)}</span>
+      <span class="ide-tab-name" title="${esc(p)}">${esc(name)}</span>
+      <button class="ide-tab-close" onclick="event.stopPropagation();closeTab('${p}')"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>`;
+  }).join('');
+}
+
+function loadFileToEditor(path){
+  el('ideWelcome').style.display='none';
+  const editorDiv=el('ideEditor');
+  editorDiv.style.display='flex';
+  el('ideEditorWrap').style.flexDirection='row';
+  el('codeArea').value=fileSystem[path]||'';
+  updateLineNums();
+  el('fmCurrentFile') && (el('fmCurrentFile').textContent=path.split('/').pop());
+  el('langLabel').textContent=getLangLabel(path);
+  el('codeArea').focus();
+  syncStatusBar();
+}
+
+function saveActiveFile(){
+  if(activeTab!==null && el('codeArea')){
+    fileSystem[activeTab]=el('codeArea').value;
+  }
+}
+
+function showWelcome(){
+  el('ideWelcome').style.display='flex';
+  el('ideEditor').style.display='none';
+}
+
+// ── Editor ────────────────────────────────────────────────────────────
+function onEditorInput(){
+  saveActiveFile();
+  updateLineNums();
+  updateLineCursor();
+}
+
+function updateLineNums(){
+  const lines=(el('codeArea').value.match(/\n/g)||[]).length+1;
+  el('lineNums').innerHTML=Array.from({length:lines},(_,i)=>`<div>${i+1}</div>`).join('');
+  syncLineNums();
+}
+
+function syncLineNums(){
+  el('lineNums').scrollTop=el('codeArea').scrollTop;
+}
+
+function updateLineCursor(){
+  const ta=el('codeArea');
+  const val=ta.value.slice(0,ta.selectionStart);
+  const ln=val.split('\n').length;
+  const col=val.split('\n').pop().length+1;
+  el('lineColInfo').textContent=`Ln ${ln}, Col ${col}`;
+}
+
+function handleEditorKey(e){
+  if(e.key==='Tab'){
+    e.preventDefault();
+    const ta=e.target, s=ta.selectionStart, end=ta.selectionEnd;
+    ta.value=ta.value.slice(0,s)+'  '+ta.value.slice(end);
+    ta.selectionStart=ta.selectionEnd=s+2;
+    saveActiveFile();updateLineNums();
+  }
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();quickSave();}
+}
+
+function quickSave(){
+  saveActiveFile();
+  toast('Saved locally','success',1500);
+  syncStatusBar();
+}
+
+// ── File Operations ───────────────────────────────────────────────────
+function newFile(basePath=''){
+  const name=prompt('File name:',basePath?basePath+'/':'');
+  if(!name||!name.trim())return;
+  createFile(name.trim());
+}
+function newFileIn(folder){
+  const name=prompt('File name:',folder+'/');
+  if(!name||!name.trim())return;
+  createFile(name.trim());
+}
+function newFolder(base=''){
+  const name=prompt('Folder name:',base?base+'/':'');
+  if(!name||!name.trim())return;
+  const folderPath=name.trim().replace(/\/$/,'');
+  // Create a .gitkeep inside to make folder visible
+  createFile(folderPath+'/.gitkeep',true);
+}
+
+function createFile(path, silent=false){
+  path=path.replace(/^\/+/,'').replace(/\/+/g,'/');
+  if(fileSystem[path]!==undefined){openFile(path);return;}
+  fileSystem[path]=defaultFileContent(path);
+  if(!entryFile && isCodeFile(path)) entryFile=path;
+  renderTree();
+  openFile(path);
+  if(!silent) toast('Created: '+path,'success');
+}
+
+function isCodeFile(path){
+  const ext=(path.split('.').pop()||'').toLowerCase();
+  return ['js','ts','py','jsx','tsx','sh'].includes(ext);
+}
+
+function defaultFileContent(path){
+  const name=path.split('/').pop().toLowerCase();
+  if(name==='requirements.txt')return'# Add Python packages (one per line)\n# Example:\nrequests\n';
+  if(name==='vercel.json')return'{\n  "rewrites": [\n    { "source": "/bot/:botId", "destination": "/api/tg/:botId" }\n  ]\n}\n';
+  if(name==='.gitkeep')return'';
+  if(name==='.env'||name==='.env.example')return'# Environment Variables\nTELEGRAM_TOKEN=your_token_here\n';
+  if(name==='readme.md')return'# My Telegram Bot\n\nHosted on Dropify Bot Studio.\n';
+  if(name==='config.json')return'{\n  "version": "1.0.0",\n  "debug": false\n}\n';
+  const ext=(path.split('.').pop()||'').toLowerCase();
+  if(ext==='js')return`// ${path.split('/').pop()}\n\n`;
+  if(ext==='py')return`# ${path.split('/').pop()}\n\n`;
+  if(ext==='json')return'{\n  \n}\n';
+  if(ext==='md')return`# ${path.split('/').pop().replace(/\.md$/,'')}\n\n`;
+  if(ext==='sh')return`#!/bin/bash\n\n`;
+  return '';
+}
+
+function deleteFile(path){
+  if(!confirm(`Delete "${path}"?`))return;
+  delete fileSystem[path];
+  if(entryFile===path) entryFile=null;
+  closeTab(path);
+  renderTree();
+  toast('Deleted: '+path,'info');
+}
+
+function deleteFolder(folderPath){
+  const files=Object.keys(fileSystem).filter(p=>p.startsWith(folderPath+'/'));
+  if(!confirm(`Delete folder "${folderPath}" and ${files.length} file(s)?`))return;
+  files.forEach(p=>{delete fileSystem[p];closeTab(p);if(entryFile===p)entryFile=null;});
+  renderTree();
+  toast('Folder deleted','info');
+}
+
+function renameFile(path){
+  const oldName=path.split('/').pop();
+  const newName=prompt('Rename to:',oldName);
+  if(!newName||!newName.trim()||newName===oldName)return;
+  const dir=path.includes('/')?path.slice(0,path.lastIndexOf('/')):'';
+  const newPath=dir?dir+'/'+newName.trim():newName.trim();
+  if(fileSystem[newPath]!==undefined){toast('File already exists','error');return;}
+  fileSystem[newPath]=fileSystem[path];
+  delete fileSystem[path];
+  if(entryFile===path)entryFile=newPath;
+  const tabIdx=openTabs.indexOf(path);
+  if(tabIdx!==-1){openTabs[tabIdx]=newPath;}
+  if(activeTab===path)activeTab=newPath;
+  renderTree();renderTabs();
+  toast('Renamed to: '+newPath,'success');
+}
+
+function collapseAll(){
+  Object.keys(folderState).forEach(k=>folderState[k]=false);
+  renderTree();
+}
+
+function clearAll(){
+  if(!confirm('Delete ALL files?'))return;
+  fileSystem={};entryFile=null;openTabs=[];activeTab=null;
+  renderTree();renderTabs();showWelcome();
+  toast('All files cleared','info');
+}
+
+// ── Entry Point ───────────────────────────────────────────────────────
+function updateEntrySelect(){
+  const sel=el('cfgEntry');
+  const files=Object.keys(fileSystem).filter(p=>!p.endsWith('.gitkeep'));
+  sel.innerHTML='<option value="">— Select entry point —</option>'+
+    files.map(p=>`<option value="${esc(p)}" ${p===entryFile?'selected':''}>${esc(p)}</option>`).join('');
+  sel.onchange=()=>{entryFile=sel.value||null;renderTree();syncStatusBar();};
+  el('sbEntry').textContent=entryFile?'⚡ '+entryFile.split('/').pop():'No entry';
+}
+
+// ── ZIP Upload ────────────────────────────────────────────────────────
+function triggerZipUpload(){el('zipInput').click();}
+
+async function handleZipUpload(input){
+  const file=input.files[0];if(!file)return;
+  input.value='';
+  if(!file.name.endsWith('.zip')){toast('Please upload a .zip file','error');return;}
+  await extractZip(file);
+}
+
+async function handleFileDrop(e){
+  e.preventDefault();
+  el('sidebarDrop').classList.remove('drag-over');
+  const files=[...e.dataTransfer.files];
+  for(const f of files){
+    if(f.name.endsWith('.zip')){await extractZip(f);}
+    else{
+      const text=await f.text().catch(()=>'');
+      fileSystem[f.name]=text;
+      if(!entryFile&&isCodeFile(f.name))entryFile=f.name;
+    }
+  }
+  renderTree();
+  if(files.length)toast(`Added ${files.length} file(s)`,'success');
+}
+
+async function extractZip(file){
+  el('uploadOverlay').classList.add('show');
+  el('uploadBar').style.width='0%';
+  el('uploadStatus').textContent='Reading ZIP...';
+
+  try{
+    const jszip=await JSZip.loadAsync(file);
+    const entries=Object.entries(jszip.files).filter(([,f])=>!f.dir);
+    let done=0;
+    // Strip common root folder if all files share one
+    const paths=entries.map(([p])=>p);
+    const commonRoot=paths.length>1?paths[0].split('/')[0]:null;
+    const allShareRoot=commonRoot&&paths.every(p=>p.startsWith(commonRoot+'/'));
+
+    for(const [path, zipEntry] of entries){
+      try{
+        const realPath=allShareRoot?path.slice(commonRoot.length+1):path;
+        if(!realPath||realPath.endsWith('/'))continue;
+        // Skip system files
+        if(realPath.startsWith('__MACOSX/')||realPath.endsWith('.DS_Store'))continue;
+        const content=await zipEntry.async('text');
+        fileSystem[realPath]=content;
+        if(!entryFile&&isCodeFile(realPath))entryFile=realPath;
+        done++;
+        const pct=Math.round((done/entries.length)*100);
+        el('uploadBar').style.width=pct+'%';
+        el('uploadStatus').textContent=`Extracting ${done}/${entries.length}: ${realPath.split('/').pop()}`;
+      }catch(_){}
+    }
+    el('uploadBar').style.width='100%';
+    el('uploadStatus').textContent=`Done! ${done} files extracted.`;
+    setTimeout(()=>el('uploadOverlay').classList.remove('show'),800);
+    renderTree();
+    if(Object.keys(fileSystem).length) openFile(entryFile||Object.keys(fileSystem)[0]);
+    toast(`ZIP extracted: ${done} files`,'success');
+    // Auto-detect language from files
+    autoDetectLang();
+  }catch(err){
+    el('uploadOverlay').classList.remove('show');
+    toast('ZIP error: '+err.message,'error');
+  }
+}
+
+function autoDetectLang(){
+  const hasPy=Object.keys(fileSystem).some(p=>p.endsWith('.py'));
+  const hasJs=Object.keys(fileSystem).some(p=>p.endsWith('.js')||p.endsWith('.ts'));
+  if(hasPy&&!hasJs)setLang('python');
+  else if(hasJs)setLang('js');
+}
+
+// ── Context Menu ──────────────────────────────────────────────────────
+function showCtx(e,type,path){
+  e.preventDefault();e.stopPropagation();
+  ctxTarget={type,path};
+  const menu=el('ctxMenu');
+  const isRoot=type==='root';
+  const isFile=type==='file';
+  const isFolder=type==='folder';
+  el('ctx-rename').style.display=isFile||isFolder?'flex':'none';
+  el('ctx-duplicate').style.display=isFile?'flex':'none';
+  el('ctx-entry').style.display=isFile?'flex':'none';
+  el('ctx-delete').style.display=!isRoot?'flex':'none';
+  menu.style.left=Math.min(e.clientX,window.innerWidth-170)+'px';
+  menu.style.top=Math.min(e.clientY,window.innerHeight-200)+'px';
+  menu.classList.add('show');
+}
+document.addEventListener('click',()=>el('ctxMenu').classList.remove('show'));
+
+function ctxNewFile(){const base=ctxTarget?.type==='folder'?ctxTarget.path:'';newFile(base);}
+function ctxNewFolder(){const base=ctxTarget?.type==='folder'?ctxTarget.path:'';newFolder(base);}
+function ctxRename(){if(ctxTarget?.type==='file')renameFile(ctxTarget.path);}
+function ctxDuplicate(){
+  if(ctxTarget?.type!=='file')return;
+  const path=ctxTarget.path;
+  const ext=path.includes('.')?'.'+path.split('.').pop():'';
+  const base=ext?path.slice(0,path.length-ext.length):path;
+  let newPath=base+'_copy'+ext;
+  let i=2;while(fileSystem[newPath]!==undefined)newPath=base+'_copy'+i++ +ext;
+  fileSystem[newPath]=fileSystem[path];
+  renderTree();openFile(newPath);toast('Duplicated as: '+newPath,'success');
+}
+function ctxSetEntry(){if(ctxTarget?.type==='file'){entryFile=ctxTarget.path;renderTree();syncStatusBar();toast('Entry: '+ctxTarget.path,'success');}}
+function ctxDelete(){
+  if(ctxTarget?.type==='file')deleteFile(ctxTarget.path);
+  else if(ctxTarget?.type==='folder')deleteFolder(ctxTarget.path);
+}
+
+// ── Language ──────────────────────────────────────────────────────────
+function setLang(lang){
+  currentLang=lang;
+  const isJs=lang==='js';
+  el('langJs').style.background=isJs?'var(--tg)':'transparent';
+  el('langJs').style.color=isJs?'#fff':'var(--text-2)';
+  el('langPy').style.background=!isJs?'var(--tg)':'transparent';
+  el('langPy').style.color=!isJs?'#fff':'var(--text-2)';
+  el('cfgLang').value=lang;
+}
+
+// ── Config Panel ──────────────────────────────────────────────────────
+let configOpen=true;
+function toggleConfig(){
+  configOpen=!configOpen;
+  el('ideConfig').classList.toggle('collapsed',!configOpen);
+}
+
+// ── Env Vars ──────────────────────────────────────────────────────────
+let envVars=[];
+function addEnvRow(k='',v=''){
+  envVars.push({k,v});renderEnvRows();
+}
+function renderEnvRows(){
+  el('envRows').innerHTML=envVars.map((r,i)=>`
+    <div class="env-row">
+      <input placeholder="KEY" value="${esc(r.k)}" oninput="envVars[${i}].k=this.value">
+      <input placeholder="VALUE" value="${esc(r.v)}" oninput="envVars[${i}].v=this.value">
+      <button class="env-del" onclick="envVars.splice(${i},1);renderEnvRows()"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>`).join('');
+}
+
+// ── Token ─────────────────────────────────────────────────────────────
+function toggleTokenVis(){
+  const inp=el('cfgToken');
+  const show=inp.type==='password';
+  inp.type=show?'text':'password';
+  el('tokenVisBtn').innerHTML=show?'<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>Hide':'<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Show';
+}
+
+async function verifyToken(){
+  const token=el('cfgToken').value.trim();
+  if(!token){toast('Enter a token first','warn');return;}
+  try{
+    const r=await fetch(`https://api.telegram.org/bot${token}/getMe`);
+    const d=await r.json();
+    if(d.ok){toast(`✓ Valid: @${d.result.username}`,'success',4000);}
+    else toast('Invalid token: '+d.description,'error');
+  }catch(e){toast('Network error','error');}
+}
+
+// ── File Summary ──────────────────────────────────────────────────────
+function updateFileSummary(){
+  const files=Object.keys(fileSystem).filter(p=>!p.endsWith('.gitkeep'));
+  el('cfgFileSummary').innerHTML=files.length?
+    `<span style="color:var(--green);font-weight:600">${files.length} files</span> in project<br>${files.slice(0,5).map(p=>`<span style="font-family:var(--mono);font-size:10px;color:var(--text-3)">${getIcon(p.split('/').pop())} ${p}</span>`).join('<br>')}${files.length>5?`<br><span style="color:var(--text-3);font-size:10px">+${files.length-5} more</span>`:''}`:
+    '<span style="color:var(--text-3)">No files yet</span>';
+}
+
+// ── Status Bar ────────────────────────────────────────────────────────
+function syncStatusBar(){
+  const count=Object.keys(fileSystem).filter(p=>!p.endsWith('.gitkeep')).length;
+  el('sbFiles').textContent=count+' file'+(count!==1?'s':'');
+  el('sbEntry').textContent=entryFile?'⚡ '+entryFile.split('/').pop():'No entry';
+}
+
+// ── Templates ────────────────────────────────────────────────────────
+function loadTemplate(name){
+  const templates={
+    basic:{
+      lang:'js',
+      files:{
+        'index.js': `// Dropify Telegram Bot\n// Available: update, env, reply, sendMessage, log, fetch\n\nconst msg = update.message;\nif (!msg) return;\n\nconst text = msg.text || '';\nconst name = msg.from?.first_name || 'User';\n\nlog('Message from', name, ':', text);\n\nif (text === '/start') {\n  await reply(\`Welcome \${name}! 🤖\\nI am your bot hosted on Dropify.\\n\\nType /help for commands.\`);\n} else if (text === '/help') {\n  await reply('Commands:\\n/start - Start\\n/ping - Test');\n} else if (text === '/ping') {\n  await reply('Pong! 🏓');\n} else {\n  await reply('Unknown command. Try /help');\n}\n`,
+        'README.md':'# My Telegram Bot\n\nHosted on Dropify Bot Studio.\n\n## Commands\n- `/start` - Welcome message\n- `/ping` - Test the bot\n'
+      },
+      entry:'index.js'
+    },
+    ai:{
+      lang:'js',
+      files:{
+        'index.js':`// AI Chatbot using SambaNova API\nconst msg = update.message;\nif (!msg || !msg.text) return;\n\nif (msg.text === '/start') {\n  await reply('Hello! 🧠 I am an AI assistant. Ask me anything!');\n  return;\n}\n\nconst res = await fetch('https://api.sambanova.ai/v1/chat/completions', {\n  method: 'POST',\n  headers: {\n    'Content-Type': 'application/json',\n    'Authorization': 'Bearer ' + env.API_KEY\n  },\n  body: JSON.stringify({\n    model: 'Meta-Llama-3.1-8B-Instruct',\n    messages: [\n      { role: 'system', content: 'You are a helpful assistant. Be concise.' },\n      { role: 'user', content: msg.text }\n    ]\n  })\n});\nconst data = await res.json();\nawait reply(data.choices?.[0]?.message?.content || 'Error occurred');\n`,
+        '.env.example':'# Add these to Env Vars in config\nAPI_KEY=your_sambanova_api_key\n',
+        'README.md':'# AI Chatbot\n\nPowered by SambaNova + Dropify.\n'
+      },
+      entry:'index.js'
+    },
+    python:{
+      lang:'python',
+      files:{
+        'main.py':`# Dropify Telegram Bot (Python)\n# Available: update, env, reply, send_message, log\n\nmsg = update.get("message")\nif not msg or not msg.get("text"):\n    exit()\n\ntext = msg["text"]\nname = msg.get("from", {}).get("first_name", "User")\nlog(f"Message from {name}: {text}")\n\nif text == "/start":\n    reply(f"Welcome {name}! 🐍\\nPython bot on Dropify.")\nelif text == "/ping":\n    reply("Pong! 🏓")\nelse:\n    reply("Unknown command. Try /start")\n`,
+        'requirements.txt':'# Add Python packages here\n# requests\n',
+        'README.md':'# Python Telegram Bot\n\nHosted on Dropify Bot Studio.\n'
+      },
+      entry:'main.py'
+    }
+  };
+
+  const t=templates[name];if(!t)return;
+  if(Object.keys(fileSystem).length&&!confirm('This will replace existing files. Continue?'))return;
+  fileSystem=t.files;
+  entryFile=t.entry;
+  setLang(t.lang);
+  openTabs=[];activeTab=null;
+  renderTree();renderTabs();
+  openFile(t.entry);
+  toast('Template loaded: '+name,'success');
+}
+
+// ── Deploy ────────────────────────────────────────────────────────────
+async function deployBot(){
+  if(!user){toast('Not logged in','error');return;}
+  saveActiveFile();
+
+  const name=(el('cfgBotName').value||el('botNameInput').value||'').trim();
+  const token=el('cfgToken').value.trim();
+  const desc=el('cfgDesc').value.trim();
+
+  if(!name){toast('Enter a bot name','error');el('cfgBotName').focus();return;}
+  if(!token){toast('Enter bot token','error');el('cfgToken').focus();return;}
+  if(!entryFile){toast('Set an entry file (⚡)','error');return;}
+  if(!fileSystem[entryFile]?.trim()){toast('Entry file is empty','error');return;}
+
+  const files={};
+  Object.entries(fileSystem).forEach(([path,content])=>{
+    files[encodeKey(path)]=content;
+  });
+
+  const envVarsObj={};
+  envVars.filter(r=>r.k.trim()).forEach(r=>{envVarsObj[r.k.trim()]=r.v;});
+
+  const btn=el('deployBtn');
+  btn.disabled=true;btn.innerHTML='<svg class="spin" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Deploying...';
+
+  try{
+    let botId=editBotId;
+    if(!botId) botId=db.ref(`bots/${user.uid}`).push().key;
+
+    const data={
+      name, token, desc,
+      language:currentLang,
+      files,
+      entryFile:encodeKey(entryFile),
+      code:fileSystem[entryFile]||'',
+      envVars:envVarsObj,
+      status:'running',
+      createdAt:editBotId?(await db.ref(`bots/${user.uid}/${botId}/createdAt`).get()).val()||Date.now():Date.now(),
+      updatedAt:Date.now(),
+      messageCount:editBotId?(await db.ref(`bots/${user.uid}/${botId}/messageCount`).get()).val()||0:0,
+    };
+
+    await db.ref(`bots/${user.uid}/${botId}`).set(data);
+    await db.ref(`botIndex/${botId}`).set({uid:user.uid});
+
+    // Set webhook
+    const webhookUrl=`${location.origin}/bot/${botId}`;
+    await fetch(`https://api.telegram.org/bot${token}/setWebhook`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url:webhookUrl})
+    });
+
+    editBotId=botId;
+    el('sbStatus').innerHTML=`<span class="sb-dot" style="background:var(--green)"></span><span style="color:var(--green)">Deployed ✓</span>`;
+    toast('Bot deployed! Webhook set.','success',4000);
+    btn.disabled=false;
+    btn.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg> Deployed ✓';
+    btn.style.background='var(--green)';
+
+    setTimeout(()=>{
+      if(confirm('Bot deployed! Go back to Bot Panel?')) goBack();
+    },1500);
+
+  }catch(err){
+    toast('Deploy failed: '+err.message,'error');
+    btn.disabled=false;
+    btn.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg> Deploy Bot';
+    btn.style.background='';
+  }
+}
+
+// ── Navigation ────────────────────────────────────────────────────────
+function goBack(){
+  saveActiveFile();
+  history.back();
+  setTimeout(()=>location.href='telegram-bot.html',300);
+}
+
+// ── Load existing bot (edit mode) ─────────────────────────────────────
+async function loadBotForEdit(uid,botId){
+  try{
+    const snap=await db.ref(`bots/${uid}/${botId}`).get();
+    if(!snap.exists())return;
+    const bot=snap.val();
+    el('botNameInput').value=bot.name||'';
+    el('cfgBotName').value=bot.name||'';
+    el('cfgToken').value=bot.token||'';
+    el('cfgDesc').value=bot.desc||bot.description||'';
+    setLang(bot.language||'js');
+
+    // Load files
+    if(bot.files&&Object.keys(bot.files).length){
+      Object.entries(bot.files).forEach(([key,content])=>{
+        fileSystem[decodeKey(key)]=content;
+      });
+      entryFile=bot.entryFile?decodeKey(bot.entryFile):null;
+    } else if(bot.code){
+      const fname=bot.language==='python'?'main.py':'index.js';
+      fileSystem[fname]=bot.code;
+      entryFile=fname;
+    }
+
+    if(bot.envVars){
+      envVars=Object.entries(bot.envVars).map(([k,v])=>({k,v}));
+      renderEnvRows();
+    }
+
+    renderTree();
+    if(entryFile&&fileSystem[entryFile]) openFile(entryFile);
+    else if(Object.keys(fileSystem).length) openFile(Object.keys(fileSystem)[0]);
+    toast('Bot loaded for editing','info');
+  }catch(e){toast('Failed to load bot: '+e.message,'error');}
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────
+auth.onAuthStateChanged(u=>{
+  user=u;
+  if(!u){location.href='./';return;}
+  el('sbUserName').textContent=u.displayName||u.email||'User';
+  // Check URL params
+  const params=new URLSearchParams(location.search);
+  const bid=params.get('bot');
+  if(bid){editBotId=bid;loadBotForEdit(u.uid,bid);}
+  else{
+    // New bot — start with template choice or empty
+    const tmpl=params.get('template');
+    if(tmpl)loadTemplate(tmpl);
+  }
+  lucide.createIcons();
+});
+
+// ── Sync config name input ────────────────────────────────────────────
+el('botNameInput').addEventListener('input',()=>el('cfgBotName').value=el('botNameInput').value);
+el('cfgBotName').addEventListener('input',()=>el('botNameInput').value=el('cfgBotName').value);
+
+// ── Keyboard shortcuts ────────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();quickSave();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='n'){e.preventDefault();newFile();}
+  if(e.key==='Escape')el('ctxMenu').classList.remove('show');
+});
+
+// ── Spin animation ────────────────────────────────────────────────────
+const sty=document.createElement('style');
+sty.textContent='@keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin .8s linear infinite}';
+document.head.appendChild(sty);
+
+// Init
+lucide.createIcons();
+
+// ── Mobile Panel Functions ────────────────────────────────────────
+function toggleMobileSidebar(){
+  const s=el('ideSidebar'), o=el('mobileOverlay');
+  const open=s.classList.toggle('mobile-open');
+  o.classList.toggle('show', open);
+  if(open) el('ideConfig').classList.remove('mobile-open');
+}
+function toggleMobileConfig(){
+  const cfg=el('ideConfig'), o=el('mobileOverlay');
+  cfg.classList.remove('collapsed');
+  const open=cfg.classList.toggle('mobile-open');
+  o.classList.toggle('show', open);
+  if(open) el('ideSidebar').classList.remove('mobile-open');
+  lucide.createIcons();
+}
+function closeMobilePanels(){
+  el('ideSidebar').classList.remove('mobile-open');
+  el('ideConfig').classList.remove('mobile-open');
+  el('mobileOverlay').classList.remove('show');
+}
+// Close panels when file is opened on mobile
+const _origOpenFile = openFile;
+openFile = function(path){
+  _origOpenFile(path);
+  if(window.innerWidth<=768) closeMobilePanels();
+};
+
+</script>
+
+  <!-- Mobile Toolbar -->
+  <div class="mobile-toolbar" id="mobileToolbar">
+    <button class="btn btn-secondary" onclick="toggleMobileSidebar()"><i data-lucide="folder-tree"></i>Files</button>
+    <button class="btn btn-secondary" onclick="newFile()"><i data-lucide="file-plus"></i>New</button>
+    <button class="btn btn-secondary" onclick="toggleMobileConfig()"><i data-lucide="settings-2"></i>Config</button>
+    <button class="btn btn-success" onclick="deployBot()" style="flex:1.5"><i data-lucide="rocket"></i>Deploy</button>
+  </div>
+</body>
+</html>
